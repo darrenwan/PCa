@@ -1,110 +1,77 @@
-# CIE
-Clinical Inference Engine ，临床推理引擎
-+--datasource
-|      +--.DS_Store
-|      +--datareader
-|      |      +--__init__.py
-|      |      +--__pycache__
-|      |      |      +--datareader.cpython-36.pyc
-|      |      |      +--__init__.cpython-36.pyc
-|      |      +--test.py
-|      |      +--datareader.py
-|      +--db_mongo.py
-|      +--db_mysql.py
-+--pipeline
-|      +--.DS_Store
-|      +--demo.py
-|      +--gitignore
-+--tree.py
-+--eda
-|      +--visualization
-|      |      +--eda_plot.py
-|      |      +--__init__.py
-|      |      +--__pycache__
-|      |      |      +--eda_plot.cpython-36.pyc
-|      |      |      +--__init__.cpython-36.pyc
-|      +--.DS_Store
-|      +--report
-|      |      +--.DS_Store
-+--.DS_Store
-+--config
-|      +--.DS_Store
-|      +--settings.py
-|      +--settings.ini
-+--tests
-|      +--.DS_Store
-|      +--Test1.py
-+--output
-|      +--gitignore
-+--models
-|      +--classification
-|      |      +--classification.py
-|      |      +--__init__.py
-|      |      +--__pycache__
-|      |      |      +--__init__.cpython-36.pyc
-|      |      |      +--classification.cpython-36.pyc
-|      +--.DS_Store
-|      +--models.py
-|      +--other
-|      |      +--gitignore
-|      +--clustering
-|      |      +--gitignore
-|      +--__init__.py
-|      +--pos
-|      |      +--gitignore
-|      +--deeplearnning
-|      |      +--gitignore
-|      +--KG
-|      |      +--gitignore
-|      +--regression
-|      |      +--gitignore
-|      +--RL
-|      |      +--gitignore
-+--docs
-|      +--Python For Data Science Cheat Sheet Bokeh.pdf
-|      +--Neural Networks Graphs 1.png
-|      +--Neural Networks Graphs.png
-|      +--机器学习流程.docx
-|      +--.DS_Store
-|      +--Python For Data Science Cheat Sheet Keras.pdf
-|      +--Python For Data Science Cheat Sheet SciPy - Linear Algebra.pdf
-|      +--Python For Data Science Cheat Sheet Pandas.pdf
-|      +--Python For Data Science Cheat Sheet Matplotlib.pdf
-|      +--Python For Data Science Cheat Sheet Jupyter Notebook.pdf
-|      +--Python For Data Science Cheat Sheet Pandas Basics.pdf
-|      +--Python For Data Science Cheat Sheet Scikit-Learn.pdf
-|      +--Python For Data Science Cheat Sheet PySpark - RDD Basics.pdf
-|      +--Python For Data Science Cheat Sheet 3 Seaborn.pdf
-|      +--Python For Data Science Cheat Sheet NumPy Basics.pdf
-|      +--代码及命名规范.docx
-|      +--scikit-learn algorithm cheat-sheet.png
-|      +--Python For Data Science Cheat Sheet For Beginners.pdf
-|      +--Python For Data Science Cheat Sheet Importing Data.pdf
-|      +--linear algebra 2.png
-|      +--CIE_arch.docx
-|      +--linear algebra 1.png
-+--README.md
-+--common
-|      +--.DS_Store
-|      +--__init__.py
-|      +--utils
-|      +--__pycache__
-|      |      +--__init__.cpython-36.pyc
-|      |      +--logger.cpython-36.pyc
-|      +--logger.py
-+--setup.py
-+--evaluate
-|      +--.DS_Store
-|      +--evaluate.py
-+--preprocessing
-|      +--.DS_Store
-|      +--__init__.py
-|      +--getData.py
-|      +--__pycache__
-|      |      +--preprocessing.cpython-36.pyc
-|      |      +--__init__.cpython-36.pyc
-|      +--test.py
-|      +--dataManipulate.py
-|      +--preprocessing.py
-+--data
-|      +--gitignore
+
+#CIE 
+
+[Clinical Inference Engine]
+
+##CIE是什么?
+一个算法平台、工具集、推理引擎，临床推理（Clinical Inference Engine ）相关工作的技术沉淀。 
+
+
+##CIE有哪些功能？
+~~~~~~~~~~~~
+* 更方便的数据处理功能
+* 数据探索
+* 常用算法包括，机器学习、深度学习、NLP、强化、迁移等算法
+* 前沿模型算法实现
+* 医疗相关自研算法实现
+* 端到端模型流程化、标准化
+~~~~~~~~~~~~
+
+##CIE结构
+~~~~~~~~~~~~
+* docs
+  开发用相关文档、API说明
+* config
+  配置类
+* common
+  常用工具集
+* datasource
+  包括建模用数据、数据源等
+* eda
+  数据探索常用工具集、包括报表、可视化等
+* preprocessing
+  常用数据处理、数据准备工具集
+* evaluate
+  模型评价相关工具集
+* models
+  常用算法模型，包括分类、聚类、预测、标注、深度学习、强化学习等
+* pipeline
+  可以标准化、流程化端到端机器学习应用
+* tests
+  测试、案例
+* output 
+  其他模块的临时输出数据
+~~~~~~~~~~~~
+Installation
+------------
+~~~~~~~~~~~~
+Dependencies
+~~~~~~~~~~~~
+
+##捐助开发者
+~~~~~~~~~~~~
+上海翼依算法部所有成员
+
+在使用中有任何问题，欢迎反馈，可以企业微信联系
+* 赵文淮
+* 张楠
+* 张会勇
+~~~~~~~~~~~~
+##感激
+~~~~~~~~~~~~
+感谢以下的项目,排名不分先后
+
+* [scikit-learn](https://github.com/scikit-learn/scikit-learn) 
+* [pandas](https://github.com/pandas-dev/pandas)
+* [xgboost](https://github.com/dmlc/xgboost)
+* …………
+~~~~~~~~~~~~
+##关于作者
+
+# `[hitales]`
+```javascript
+  var ihubo = {
+    nickName  : "上海翼依算法部",
+    site : "http://www.hitales.com.cn/"
+  }
+```
