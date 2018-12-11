@@ -20,7 +20,7 @@ Clinical Inference Engine
   开发用相关文档、API说明
 * **config**
   配置类
-* **common
+* **common**
   常用工具集
 * **datasource**
   包括建模用数据、数据源等
@@ -55,7 +55,7 @@ Clinical Inference Engine
 * [scikit-learn](https://github.com/scikit-learn/scikit-learn) 
 * [pandas](https://github.com/pandas-dev/pandas)
 * [xgboost](https://github.com/dmlc/xgboost)
-* ... *and so on
+* ... *and so on*
 
 ## 关于作者
 
