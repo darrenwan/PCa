@@ -43,9 +43,7 @@ Clinical Inference Engine
   其他模块的临时输出数据
 ~~~~~~~~~~~~
 ## Installation
-~~~~~~~~~~~~
-** Dependencies **
-~~~~~~~~~~~~
+**Dependencies**
 
 ## 开发者
 ~~~~~~~~~~~~
