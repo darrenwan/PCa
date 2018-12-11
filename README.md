@@ -39,11 +39,12 @@ Clinical Inference Engine
   可以标准化、流程化端到端机器学习应用
 * tests
   测试、案例
-* output 
+* --output-- 
   其他模块的临时输出数据
 ~~~~~~~~~~~~
 ## Installation
 **Dependencies**
+***待续
 
 ## 开发者
 ~~~~~~~~~~~~
