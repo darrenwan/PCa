@@ -1,13 +1,13 @@
 
-#CIE 
+# CIE 
 >Clinical Inference Engine
 
-##CIE是什么?
+## CIE是什么?
 
 >一个算法平台、工具集、推理引擎，临床推理（Clinical Inference Engine ）相关工作的技术沉淀。 
 
 
-##CIE有哪些功能？
+## CIE有哪些功能？
 ~~~~~~~~~~~~
 * 更方便的数据处理功能
 * 数据探索
@@ -17,7 +17,7 @@
 * 端到端模型流程化、标准化
 ~~~~~~~~~~~~
 
-##CIE结构
+## CIE结构
 ~~~~~~~~~~~~
 * docs
   开发用相关文档、API说明
@@ -42,13 +42,13 @@
 * output 
   其他模块的临时输出数据
 ~~~~~~~~~~~~
-Installation
+## Installation
 ------------
 ~~~~~~~~~~~~
-Dependencies
+**Dependencies**
 ~~~~~~~~~~~~
 
-##捐助开发者
+## 开发者
 ~~~~~~~~~~~~
 上海翼依算法部所有成员
 
@@ -57,7 +57,7 @@ Dependencies
 * 张楠
 * 张会勇
 ~~~~~~~~~~~~
-##感激
+## 感激
 ~~~~~~~~~~~~
 感谢以下的项目,排名不分先后
 
@@ -66,7 +66,7 @@ Dependencies
 * [xgboost](https://github.com/dmlc/xgboost)
 * …………
 ~~~~~~~~~~~~
-##关于作者
+## 关于作者
 
 # `[hitales]`
 ```javascript
