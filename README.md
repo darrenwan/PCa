@@ -16,9 +16,9 @@ Clinical Inference Engine
 * 端到端模型流程化、标准化
 
 ## CIE结构
-* **docs
+* **docs**
   开发用相关文档、API说明
-* **config
+* **config**
   配置类
 * **common
   常用工具集
