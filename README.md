@@ -59,7 +59,7 @@ Clinical Inference Engine
 
 ## 关于作者
 
-# `[hitales]`
+# [**hitales**](http://www.hitales.com.cn/)
 ```javascript
   var ihubo = {
     nickName  : "上海翼依算法部",
