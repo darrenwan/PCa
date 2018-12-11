@@ -1,10 +1,10 @@
 
 # CIE 
->Clinical Inference Engine
+Clinical Inference Engine
 
 ## CIE是什么?
 
->一个算法平台、工具集、推理引擎，临床推理（Clinical Inference Engine ）相关工作的技术沉淀。 
+一个算法平台、工具集、推理引擎，临床推理（Clinical Inference Engine ）相关工作的技术沉淀。 
 
 
 ## CIE有哪些功能？
@@ -43,9 +43,8 @@
   其他模块的临时输出数据
 ~~~~~~~~~~~~
 ## Installation
-------------
 ~~~~~~~~~~~~
-**Dependencies**
+** Dependencies **
 ~~~~~~~~~~~~
 
 ## 开发者
