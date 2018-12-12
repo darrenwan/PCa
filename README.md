@@ -16,28 +16,33 @@ Clinical Inference Engine
 * 端到端模型流程化、标准化
 
 ## CIE结构
+* **cases**
+  应用案例
+* **cie**
+  cie核心功能
+  * **config**
+  配置类
+  * **common**
+  常用工具集
+  * **datasource**
+  包括建模用数据、数据源等
+  * **eda**
+  数据探索常用工具集、包括报表、可视化等
+  * **preprocessing**
+  常用数据处理、数据准备工具集
+  * **evaluate**
+  模型评价相关工具集
+  * **models**
+  常用算法模型，包括分类、聚类、预测、标注、深度学习、强化学习等
+  * **pipeline**
+  可以标准化、流程化端到端机器学习应用
+  * **output**
+  其他模块的临时输出数据
 * **docs**
   开发用相关文档、API说明
-* **config**
-  配置类
-* **common**
-  常用工具集
-* **datasource**
-  包括建模用数据、数据源等
-* **eda**
-  数据探索常用工具集、包括报表、可视化等
-* **preprocessing**
-  常用数据处理、数据准备工具集
-* **evaluate**
-  模型评价相关工具集
-* **models**
-  常用算法模型，包括分类、聚类、预测、标注、深度学习、强化学习等
-* **pipeline**
-  可以标准化、流程化端到端机器学习应用
 * **tests**
   测试、案例
-* **output**
-  其他模块的临时输出数据
+
 ## Installation
 **Dependencies**
 * 待续
