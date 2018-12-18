@@ -1,49 +1,43 @@
 import pymongo
 from sshtunnel import SSHTunnelForwarder
-import numpy as np
-import pandas as pd
+from cie.common.settings import MongoDB_CONFIG
 
 #cur.execute("SELECT Host,User FROM user")
 
 class MongoClient(object):
-    def __init__(self, 
-                 host='dds-bp1f7b56b50093041.mongodb.rds.aliyuncs.com',
-                 port = 3717,
-                 user = 'health',
-                 password = 'feoGPh7<fhwczti7',
+    def __init__(self,config):
+        self.config = config
 
-                 local = True,
-                 ssh_host = '121.199.24.144',
-                 ssh_port = 22,
-                 ssh_user = 'yh',
-                 ssh_password = 'gy3gxUw1x[qqPxyb'):
-        
-        self.user = user
-        self.password = password
-        
-        if local:
-            server = SSHTunnelForwarder((ssh_host, ssh_port,), 
-                                        ssh_username=ssh_user,
-                                        ssh_password=ssh_password,
-                                        remote_bind_address=(host, port))
+        if config["local"]:
+            server = SSHTunnelForwarder((config["ssh_host"], config["ssh_port"]),
+                                        ssh_username=config["ssh_user"],
+                                        # ssh_password=config["ssh_password"],
+                                        ssh_private_key=config["ssh_private_key"],
+                                        remote_bind_address=(config["host"], config["port"])
+                                        )
             server.start()
             self.client = pymongo.MongoClient('localhost', server.local_bind_port)
+            self.db = self.__set_database(config)
         else:
-            self.client = pymongo.MongoClient(host, port)
+            self.client = pymongo.MongoClient(config["host"], config["port"])
+            self.db = self.__set_database(config)
 
+
+    def __set_database(self,config):
+        self.client[config["dbname"]].authenticate(
+            config["user"],
+            config["password"],
+            mechanism='SCRAM-SHA-1')
+        return self.client[config["dbname"]]
 
     def close(self):
         self._cursor.close()
         self._conn.close()
 
-    def set_database(self, database):
-        self.database = database
-        
     def merge_documents(self, documents):
         from collections import defaultdict
         records = defaultdict()
-        
-        
+
             
     def execute(self, sql, database='dpp-test', collection='candidate'):
         print('将执行的sql语句是: db["%s"]["%s"].%s' % (database, collection, sql))
@@ -58,3 +52,6 @@ class MongoClient(object):
             print('Error:', e)
 
 
+if __name__ == '__main__':
+    mgcl = MongoClient(MongoDB_CONFIG)
+    mgcl.db

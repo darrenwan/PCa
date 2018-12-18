@@ -2,31 +2,37 @@
 """
 Created on Tue Aug 14 11:02:22 2018
 
-@author: atlan
+@author:
 """
 
 import pymysql
 import numpy as np
 import pandas as pd
+from sshtunnel import SSHTunnelForwarder
+from cie.common.settings import MYSQL_CONFIG
 
 #cur.execute("SELECT Host,User FROM user")
 
 class MySQLClient(object):
-    def __init__(self, 
-                 host='rm-bp1a049g618bz7l2q.mysql.rds.aliyuncs.com',
-                 port = 3306,
-                 user = 'healthread',
-                 password = 'rqqgK#a1nIfc3yvq',
-                 database = 'yixianxiangguan'):
-        
+    def __init__(self,config):
+
+
+        server = SSHTunnelForwarder((config["ssh_host"], config["ssh_port"]),
+                                    ssh_username=config["ssh_user"],
+                                    # ssh_password=config["ssh_password"],
+                                    ssh_private_key=config["ssh_private_key"],
+                                    remote_bind_address=(config["host"], config["port"])
+                                    )
+        server.start()
+        print ("SERVER ALIVE: {0}".format(server.is_alive))
         self._conn = pymysql.connect(
-                host = host,
-                port = port,
-                user = user,
-                password = password,
-                database = database,
-                )
-        self._cursor = self._conn.cursor()              
+            host = 'localhost',
+            port = server.local_bind_port,
+            user = config["user"],
+            password = config["password"],
+            database = config["dbname"]
+        )
+        self._cursor = self._conn.cursor()
 
 
     def close(self):
@@ -44,8 +50,9 @@ class MySQLClient(object):
             return df
         except Exception as e:
             print('Error:', e)
-#                    'Error: unable to fetch data')
-        
-            
-            
-            
+
+
+if __name__ == '__main__':
+    msq = MySQLClient(MYSQL_CONFIG)
+    tb = msq.execute(sql="SELECT * FROM iiy.`20181126批次` t ;")
+
