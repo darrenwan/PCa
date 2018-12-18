@@ -1,15 +1,16 @@
 import pandas as pd
 import numpy as np
+from abc import ABCMeta, abstractmethod
+from cie.common import inherit_doc
 
 
+@inherit_doc
 class BaseChannel(object):
+    __metaclass__ = ABCMeta
+
     def __init__(self, source):
         """
         construct a channel.
-        >>> channel = CsvChannel("file.csv")
-        >>> channel.open()
-        >>> channel.read(param_dct)
-        >>> channel.close()
         :param source: source name. e.g. file path for excel/csv, database name for mongodb
         """
         self.source = source
@@ -18,14 +19,17 @@ class BaseChannel(object):
     def to_array(cls, d):
         return d.values
 
+    @abstractmethod
     def open(self):
-        pass
+        raise NotImplementedError()
 
-    def read(self):
-        pass
+    @abstractmethod
+    def read(self, **kwargs):
+        raise NotImplementedError()
 
+    @abstractmethod
     def close(self):
-        pass
+        raise NotImplementedError()
 
 
 class ExcelChannel(BaseChannel):
@@ -34,6 +38,7 @@ class ExcelChannel(BaseChannel):
     >>>channel = ExcelChannel("/Users/wenhuaizhao/works/ml/test/20180806胰腺癌.xlsx")
     >>>channel.open()
     >>>params = {
+    >>>    "label_index": 1,
     >>>    "header": [0],
     >>>    "sheet_name": 0,
     >>>    "encoding": 'gbk',
@@ -44,27 +49,49 @@ class ExcelChannel(BaseChannel):
     >>>channel.close()
     """
 
-    def read_xy(self, label=None, **kwargs):
+    def open(self):
+        pass
+
+    def close(self):
+        pass
+
+    def read(self, data_type='dataframe', **kwargs):
         """
-        read data from excel
-        :param label: int index of the label column
-        :param kwargs:
-        :return:
+        从excel读写数据
+        :param data_type: dataframe or ndarray
+        :param kwargs: `label_index` 必须为int，表示excel的第label_index列; `usecols` 必须为int的list.
+        :return: 如果是ndarray, 返回四元组: （label名字, label值, feature列名, feature值）.
+                 如果是dataframe，返回二元组: (dataframe， 列名）
         """
-        if label is None:
-            raise ValueError("label column must be set")
+        if kwargs is None:
+            raise ValueError("kwargs must be set")
+        label = kwargs.pop("label_index", None)
+        if label is not None:
+            if not isinstance(label, int):
+                raise ValueError("label_index must be type of int")
         if 'usecols' in kwargs:
-            if label in kwargs['usecols']:
-                kwargs['usecols'].sort()
-                label = kwargs['usecols'].index(label)
-            else:
-                kwargs['usecols'].append(label)
-                kwargs['usecols'].sort()
+            if label is not None:
+                if label in kwargs['usecols']:
+                    kwargs['usecols'].sort()
+                    label = kwargs['usecols'].index(label)
+                else:
+                    kwargs['usecols'].append(label)
+                    kwargs['usecols'].sort()
         data = pd.read_excel(self.source, **kwargs)
         columns = data.columns.values
-        labels = data.iloc[:, label]
-        features = data.iloc[:, [j for j, c in enumerate(data.columns) if j != label]]
-        return np.array([columns[label]]), self.to_array(labels), np.delete(columns, label), self.to_array(features)
+        if data_type == 'dataframe':
+            if label is not None:
+                data.rename(columns={data.columns[label]: "label"}, inplace=True)
+            res = (data, columns)
+        else:
+            if label is not None:
+                labels = data.iloc[:, label]
+                features = data.iloc[:, [j for j, c in enumerate(data.columns) if j != label]]
+                res = (np.array([columns[label]]), self.to_array(labels),
+                       np.delete(columns, label), self.to_array(features))
+            else:
+                res = (None, None, columns, self.to_array(data))
+        return res
 
     @classmethod
     def write(cls, data, file_name, sheet_name='Sheet1'):
@@ -79,6 +106,7 @@ class CsvChannel(BaseChannel):
     >>>channel = CsvChannel("/Users/wenhuaizhao/works/ml/test/20180806胰腺癌.csv")
     >>>channel.open()
     >>>params = {
+    >>>    "label_index":1
     >>>    "header": 0,
     >>>    "sep": ',',
     >>>    "encoding": 'gbk',
@@ -88,27 +116,47 @@ class CsvChannel(BaseChannel):
     >>>channel.close()
     """
 
-    def read_xy(self, label=None, **kwargs):
+    def open(self):
+        pass
+
+    def close(self):
+        pass
+
+    def read(self, data_type='dataframe', **kwargs):
         """
-        read data from csv
-        :param label: int index of the label column
-        :param kwargs: parameters
-        :return:
+        从csv读写数据
+        :param data_type: dataframe or ndarray
+        :param kwargs: `label_index` 必须为int，表示csv的第label_index列; `usecols` 必须为int的list.
+        :return: 如果是ndarray, 返回四元组: （label名字, label值, feature列名, feature值）.
+                 如果是dataframe，返回二元组: (dataframe， 列名）
         """
-        if label is None:
-            raise ValueError("label column must be set")
+        if kwargs is None:
+            raise ValueError("kwargs must be set")
+        label = kwargs.pop("label_index", None)
+        if label is not None:
+            if not isinstance(label, int):
+                raise ValueError("label_index must be type of int")
         if 'usecols' in kwargs:
-            if label in kwargs['usecols']:
+            if label is not None:
+                if label not in kwargs['usecols']:
+                    kwargs['usecols'].append(label)
                 kwargs['usecols'].sort()
                 label = kwargs['usecols'].index(label)
-            else:
-                kwargs['usecols'].append(label)
-                kwargs['usecols'].sort()
         data = pd.read_csv(self.source, **kwargs)
         columns = data.columns.values
-        labels = data.iloc[:, label]
-        features = data.iloc[:, [j for j, c in enumerate(data.columns) if j != label]]
-        return np.array([columns[label]]), self.to_array(labels), np.delete(columns, label), self.to_array(features)
+        if data_type == 'dataframe':
+            if label is not None:
+                data.rename(columns={data.columns[label]: "label"}, inplace=True)
+            res = (data, columns)
+        else:
+            if label is not None:
+                labels = data.iloc[:, label]
+                features = data.iloc[:, [j for j, c in enumerate(data.columns) if j != label]]
+                res = (np.array([columns[label]]), self.to_array(labels),
+                       np.delete(columns, label), self.to_array(features))
+            else:
+                res = (None, None, columns, self.to_array(data))
+        return res
 
     @classmethod
     def write(cls, data, file_name, **kwargs):
@@ -120,6 +168,7 @@ class MongoChannel(BaseChannel):
     """
     mongodb channel: read/write
     >>>param_dct = {
+    >>>    "local": False,
     >>>    "ssh_addr": "47.99.191.80",
     >>>    "ssh_port": 22,
     >>>    "mongo_user": "",
@@ -136,15 +185,16 @@ class MongoChannel(BaseChannel):
     >>>}
     """
 
-    def open(self, local=False, **kwargs):
+    def open(self, **kwargs):
         """
         open mongodb channel
-        :param local: directly access mongodb if True, otherwise using ssh to access the mongodb
-        :param kwargs: parameter mapping
+        :param kwargs: parameter mapping.
+                       `local` directly access mongodb if True, otherwise using ssh to access the mongodb.
         :return:
         """
         from pymongo import MongoClient
         param_dct = {
+            "local": False,
             "ssh_addr": "47.99.191.80",
             "ssh_port": 22,
             "mongo_user": "",
@@ -159,6 +209,7 @@ class MongoChannel(BaseChannel):
             "col_name": "",
             "auth_method": "SCRAM-SHA-1",
         }
+        local = kwargs.get("local")
         param_dct.update(kwargs)
         if not local:
             from sshtunnel import SSHTunnelForwarder
@@ -187,16 +238,20 @@ class MongoChannel(BaseChannel):
         if server:
             setattr(self, "server", server)
 
-    def read(self, query=None, projection=None):
+    def read(self, **kwargs):
         """
         read data from the database.
-        :param query: optional, a SON object specifying elements which must be present for a document to be
-                      included in the result set
-        :param projection: optional, a list of field names that should be returned in the result set or a dict
-                           specifying the fields to include or exclude. If projection is a list “_id” will always be
-                           returned. Use a dict to exclude fields from the result (e.g. projection={‘_id’: False}).
+        :param kwargs: parameters
+                       `query`: optional, a SON object specifying elements which must be present for a document
+                                to be included in the result set
+                       `projection`: optional, a list of field names that should be returned in the result
+                                     set or a dict specifying the fields to include or exclude. If projection
+                                     is a list “_id” will always be returned. Use a dict to exclude fields
+                                     from the result (e.g. projection={‘_id’: False}).
         :return: A cursor to the documents that match the query criteria.
         """
+        query = kwargs.get("query")
+        projection = kwargs.get("projection")
         db_col = getattr(self, "db_col")
         data = db_col.find(query=query, projection=projection)
         return data

@@ -18,6 +18,8 @@ setup(name='CIE',
                         'scipy>=0.14',
                         'six>=1.9.0',
                         'pyyaml',
+                        'matplotlib',
+                        'scikit-learn',
                         'h5py'],
       extras_require={
           'visualize': ['pydot>=1.2.4'],

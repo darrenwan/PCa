@@ -2,10 +2,9 @@
 import pymongo
 import sys
 from sshtunnel import SSHTunnelForwarder
-# pandas处理表格数据
+from cie.datasource import *
 import pandas as pd
 import json
-import  os
 
 # os.chdir('/Users/hitales/Documents')
 #步骤1 连接数据库函数
@@ -63,6 +62,22 @@ class ConnectMongoDB():
         self.db[tablename].insert(s)
         print("complete!!")
         return 0
+
+
+def test_csv_reader():
+    channel = CsvChannel("/Users/wenhuaizhao/works/ml/test/20180806胰腺癌.csv")
+    channel.open()
+    params = {
+        "label_index": 1,
+        "header": 0,
+        "sep": ',',
+        "encoding": 'gbk',
+        "nrows": 20000,
+        "usecols": [4, 5, 6, 7],
+
+    }
+    data, columns = channel.read(**params)
+    print(data, columns)
 
 
 if __name__ == '__main__':
