@@ -5,32 +5,38 @@ Created on Mon Sep  3 11:06:08 2018
 @author: atlan
 """
 
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.metrics import roc_auc_score,classification_report,confusion_matrix, \
-    roc_curve,brier_score_loss,precision_score,recall_score,f1_score, \
-    mean_absolute_error, mean_squared_error, explained_variance_score, r2_score
-import numpy as np
-from matplotlib import pyplot as plt
+from sklearn.metrics import *
 from sklearn.model_selection import learning_curve
 from sklearn.model_selection import GridSearchCV
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+# use TkAgg backend
+matplotlib.use("TkAgg")
+
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
+plt.rcParams['savefig.dpi'] = 200
+plt.rcParams['figure.dpi'] = 200
 
 
 def grid_search_tuning(estimator, x_train, y_train, x_test, y_test, param_grid=None, cv=5,
-                       scores={"acc": ("accuracy", None)}, regressor=False):
+                       scores={"acc": ("accuracy", None)}, features_names=None, regressor=False):
     """
-
-    :param estimator:
-    :param x_train:
-    :param y_train:
-    :param x_test:
-    :param y_test:
-    :param param_grid:
-    :param cv:
-    :param scores:
-    :param regressor:
-    :return:
+    参数grid search交叉tuning
+    :param estimator: 模型评估器
+    :param x_train: 训练数据特征
+    :param y_train: 训练数据标签
+    :param x_test: 测试数据特征
+    :param y_test: 测试数据标签
+    :param param_grid: 参数字典
+    :param cv: cv类型
+    :param scores: dict: key为别名， value为tuple(sklearn支持的score方法，score函数），对于分类问题，score函数可以设置为None
+    :param features_names: 特征名字列表
+    :param regressor: 是否为回归，默认为False
+    :return: best_estimator: 最好的estimator。
     """
     results = dict()
     for score in scores:
@@ -73,6 +79,8 @@ def grid_search_tuning(estimator, x_train, y_train, x_test, y_test, param_grid=N
             print(classification_report(y_true, y_pred))
             print()
         results.update(gs.cv_results_)
+
+    best_estimator = gs.best_estimator_
     X_axis = results['params']
     plt.figure(figsize=(13, 13))
     plt.title("GridSearchCV evaluating using multiple scorers simultaneously",
@@ -82,8 +90,8 @@ def grid_search_tuning(estimator, x_train, y_train, x_test, y_test, param_grid=N
     plt.ylabel("Score")
 
     ax = plt.gca()
-    if not regressor:
-        ax.set_ylim(0.01, 1.01)
+    # if not regressor:
+    #     ax.set_ylim(0.01, 1.01)
 
     # Get the regular numpy array from the MaskedArray
 
@@ -103,12 +111,12 @@ def grid_search_tuning(estimator, x_train, y_train, x_test, y_test, param_grid=N
             ax.plot(X_axis, sample_score_mean, style, color=color,
                     alpha=1 if sample == 'test' else 0.7,
                     label="%s (%s)" % (scorer, sample))
-        if regressor:
-            best_index = np.nonzero(results['rank_test_score'] == len(results['rank_test_score']))[0][0]
-            best_score = results['mean_test_score'][best_index]
-        else:
-            best_index = np.nonzero(results['rank_test_%s' % scorer] == 1)[0][0]
-            best_score = results['mean_test_%s' % scorer][best_index]
+        # if regressor:
+        #     best_index = np.nonzero(results['rank_test_score'] == len(results['rank_test_score']))[0][0]
+        #     best_score = results['mean_test_score'][best_index]
+        # else:
+        best_index = np.nonzero(results['rank_test_%s' % scorer] == 1)[0][0]
+        best_score = results['mean_test_%s' % scorer][best_index]
 
         # Plot a dotted vertical line at the best score for that scorer marked by x
         ax.plot([X_axis[best_index], ] * 2, [0, best_score],
@@ -117,10 +125,21 @@ def grid_search_tuning(estimator, x_train, y_train, x_test, y_test, param_grid=N
         # Annotate the best score for that scorer
         ax.annotate("%0.2f" % best_score,
                     (X_axis[best_index], best_score + 0.005))
-
+    plt.xticks(rotation=75)
+    plt.subplots_adjust(bottom=.3)
     plt.legend(loc="best")
     plt.grid('off')
-    return plt
+    plt.show()
+
+    if features_names is not None:
+        feat_imp = pd.Series(best_estimator.fit(x_train, y_train).feature_importances_, features_names).sort_values(
+            ascending=False)
+    else:
+        feat_imp = pd.Series(best_estimator.fit(x_train, y_train).feature_importances_).sort_values(ascending=False)
+    feat_imp.plot(kind='bar', title='Feature Importance')
+    plt.ylabel('Feature Importance Score')
+    plt.show()
+    return best_estimator
 
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, scoring=None, cv=None,

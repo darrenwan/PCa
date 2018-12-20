@@ -65,25 +65,20 @@ class ConnectMongoDB():
 
 
 def test_csv_reader():
-    channel = CsvChannel("/Users/wenhuaizhao/works/ml/test/20180806胰腺癌.csv")
+    channel = CsvChannel("/Users/wenhuaizhao/works/ml/CIE/tests/cie/data/胰腺癌原始数据465特征2018后_67特征_CA125fill.txt")
     channel.open()
     params = {
-        "label_index": 1,
-        "header": 0,
-        "sep": ',',
-        "encoding": 'gbk',
-        "nrows": 20000,
-        "usecols": [4, 5, 6, 7],
-
+        "sep": '\t',
+        "encoding": 'utf-8',
+        "nrows": 20,
     }
-    data, columns = channel.read(**params)
-    print(data, columns)
+    X, columns = channel.read(**params)
+    print(X, columns)
 
 
-if __name__ == '__main__':
-
-    fields = ['patientid','recordid','化验组','化验','化验描绘词','化验变化态','数值','化验数值高峰值','数值单位', \
-                       '化验定性结果','化验定性结果高峰值','异常','否定词','化验条件','时间','段落标题','化验组样本','化验名称样本']
+def test_mongodb():
+    fields = ['patientid', 'recordid', '化验组', '化验', '化验描绘词', '化验变化态', '数值', '化验数值高峰值', '数值单位', \
+              '化验定性结果', '化验定性结果高峰值', '异常', '否定词', '化验条件', '时间', '段落标题', '化验组样本', '化验名称样本']
 
     db = ConnectMongoDB().get_connection()
     # db = MongoClient()
@@ -91,16 +86,20 @@ if __name__ == '__main__':
     proj = {}
     for it in fields:
         proj[it] = '$' + it
-    project ={'$project':proj}
+    project = {'$project': proj}
     # limit ={'$limit':13}
 
     pipe = [project]
-
 
     cursor = db["ALA"].aggregate(pipe, allowDiskUse=True)
     df = pd.DataFrame(list(cursor))
     cursor.close()
 
-# cursor = db..ALA.find_one()
+    # cursor = db..ALA.find_one()
+
+if __name__ == '__main__':
+    test_csv_reader()
+
+
 
 

@@ -93,11 +93,10 @@ class ExcelChannel(BaseChannel):
                 res = (None, None, columns, self.to_array(data))
         return res
 
-    @classmethod
-    def write(cls, data, file_name, sheet_name='Sheet1'):
-        df = pd.DataFrame(data)
-        writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
-        df.to_excel(writer, sheet_name=sheet_name)
+    def write(self, data, **kwargs):
+        # df = pd.DataFrame(data)
+        writer = pd.ExcelWriter(self.source, engine='xlsxwriter')
+        data.to_excel(writer, **kwargs)
 
 
 class CsvChannel(BaseChannel):
@@ -158,10 +157,9 @@ class CsvChannel(BaseChannel):
                 res = (None, None, columns, self.to_array(data))
         return res
 
-    @classmethod
-    def write(cls, data, file_name, **kwargs):
-        df = pd.DataFrame(data)
-        df.to_csv(file_name, kwargs)
+    def write(self, data, **kwargs):
+        # df = pd.DataFrame(data)
+        data.to_csv(self.source, **kwargs)
 
 
 class MongoChannel(BaseChannel):
