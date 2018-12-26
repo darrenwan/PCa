@@ -19,16 +19,17 @@ def test_data_reader():
         "header": 0,
         "sep": ',',
         "encoding": 'gbk',
-        "nrows": 20000,
+        "nrows": 200,
         "usecols": [4, 5, 6, 7],
 
     }
     data, columns = channel.read(**params)
-    print(data, columns)
-    stat_freq(data, force_cat_cols=[columns[2]])
+    # stat_freq(data, force_cat_cols=[columns[2]])
+    stat_freq_categrical(data.drop(['就诊年龄'], axis=1))
+    stat_freq_continious(data['就诊年龄'].to_frame())
     # stat_freq(x, names=x_name, force_cat_cols=[x_name[0]])
     # stat_freq(y, names=y_name)
-    stat_dist(data, num_bins=10)
+    # stat_dist(data, num_bins=10)
     channel.close()
 
 

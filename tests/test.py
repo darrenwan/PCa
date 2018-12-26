@@ -42,18 +42,15 @@ def model_conbine(X_train, y_train, X_val, y_val, X_test, y_test):
                                               min_samples_split=50)
     estimator_l2 = estimator_l2.fit(X_train, y_train)
     y_pred = estimator_l2.predict_proba(X_test)
-    stacking_mae = -log_loss(y_test, y_pred, labels=[0, 1, 2])
+    stacking_score = -log_loss(y_test, y_pred, labels=[0, 1, 2])
 
     for item in estimator_l1:
         single_model = item[1]
         single_model = single_model.fit(X_train_orig, y_train)
         y_pred = single_model.predict_proba(X_test_orig)
-        print()
-        print(np.unique(y_pred), np.unique(y_test))
-        print()
-        pre_mae = -log_loss(y_test, y_pred, labels=[0, 1, 2])
-        print('单模型%s log_loss: [%.8f]' % (item[0], pre_mae))
-    print('stacking log_loss: [%.8f]' % stacking_mae)
+        score = -log_loss(y_test, y_pred, labels=[0, 1, 2])
+        print('单模型%s log_loss: [%.8f]' % (item[0], score))
+    print('stacking log_loss: [%.8f]' % stacking_score)
     return estimator_l2, X_train, X_val, X_test
 
 
@@ -79,6 +76,40 @@ def tuning_param(train_x, train_y, test_x, test_y):
     return best_estimator
 
 
+def feature_selection(X_train, y_train, X_val, y_val, X_test, y_test):
+    print("begin to select features")
+    from cie.feature_selection import Sfs
+    # from mlxtend.feature_selection import SequentialFeatureSelector
+    # X = X.iloc[:, :4]
+    estimator = GradientBoostingClassifier()
+    # sfs = SequentialFeatureSelector(estimator,
+    #                                 k_features=2,
+    #                                 forward=True,
+    #                                 floating=False,
+    #                                 verbose=0,
+    #                                 scoring='accuracy',
+    #                                 cv=5).fit(X, y)
+    selector = Sfs(estimator,
+                   verbose=0, scoring=None,
+                   cv=5, n_jobs=2,
+                   persist_features=None,
+                   pre_dispatch='2*n_jobs',
+                   clone_estimator=True).fit(X_train, y_train)
+    print("selected features:", selector.selected)
+
+    selector_file = './feature_selection_sfs.pkl'
+    with open(selector_file, 'wb') as file:
+        pickle.dump(selector, file)
+    with open(selector_file, 'rb') as file:
+        selector = pickle.load(file)
+
+    X_train = selector.transform(X_train)
+    X_val = selector.transform(X_val)
+    X_test = selector.transform(X_test)
+    print("end to select features")
+    return X_train, X_val, X_test
+
+
 # ===========结果===========
 # 数据集	分组	support	敏感性	特异性	阳性预测值	阴性预测值	f1_score
 # train	0	2002	0.9310689310689311	0.9806857313969157	0.9352734570998494	0.9793660287081339	0.9331664580725906
@@ -99,38 +130,12 @@ def tuning_param(train_x, train_y, test_x, test_y):
 # test	0	233	0.9012875536480687	0.9288343558282208	0.7835820895522388	0.9705128205128205	0.8383233532934131
 # test	1	472	0.8771186440677966	0.8576388888888888	0.8346774193548387	0.894927536231884	0.8553719008264463
 # test	2	343	0.6997084548104956	0.9375886524822695	0.8450704225352113	0.8651832460732984	0.7655502392344498
-
-
-def feature_selection(X, y):
-    print("begin to select features")
-    from cie.feature_selection import Sfs
-    # from mlxtend.feature_selection import SequentialFeatureSelector
-    # X = X.iloc[:, :4]
-    estimator = GradientBoostingClassifier()
-    # sfs = SequentialFeatureSelector(estimator,
-    #                                 k_features=2,
-    #                                 forward=True,
-    #                                 floating=False,
-    #                                 verbose=0,
-    #                                 scoring='accuracy',
-    #                                 cv=5).fit(X, y)
-    sfs = Sfs(estimator,
-              verbose=0, scoring=None,
-              cv=5, n_jobs=2,
-              persist_features=None,
-              pre_dispatch='2*n_jobs',
-              clone_estimator=True).fit(X, y)
-    print("selected features:", sfs.selected)
-    print("end to select features")
-    return sfs
-
-
 if "__main__" == __name__:
     has_imputation = True
-    has_feature_selection = True
+    has_feature_selection = False
     has_split_val = True
     has_tuning_param = False
-    has_model_combination = True
+    has_model_combination = False
 
     # 因为可能的参数比较多，可以通过定义参数字典来读取文件。
     # 如果一个source里面label和feature，可以通过label_index来指定label，将cols里面的其他列作为feature.
@@ -172,17 +177,7 @@ if "__main__" == __name__:
 
     if has_feature_selection:
         # 特征选择
-        selector = feature_selection(X_train, y_train)
-
-        selector_file = './feature_selection_sfs.pkl'
-        with open(selector_file, 'wb') as file:
-            pickle.dump(selector, file)
-        with open(selector_file, 'rb') as file:
-            selector = pickle.load(file)
-
-        X_train = selector.transform(X_train)
-        X_val = selector.transform(X_val)
-        X_test = selector.transform(X_test)
+        X_train, X_val, X_test = feature_selection(X_train, y_train)
 
     if has_tuning_param:
         # 参数tuning

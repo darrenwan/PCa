@@ -13,10 +13,18 @@ def _stat_metrics(model, *args):
     labels, auc, tpr, spc, ppv, npv, f1, acc, support = score_metrics(y_val, y_val_pred,
                                                                       score_classes=(y_val_pred_score, model.classes_))
     data_type = [data_set] * len(labels)
-    res = np.array(
-        reduce(lambda x1, x2: np.vstack((x1, x2)), [data_type, labels, auc, tpr, spc, ppv, npv, f1, acc, support])).T
-    res = pd.DataFrame(res)
-    return res
+    metrics = list(map(lambda x: [round(i, 5) for i in x], [auc, tpr, spc, ppv, npv, f1, acc, support]))
+
+    res = pd.DataFrame(np.array([data_type, labels] + metrics).T)
+
+    def decimal_precision(x):
+        # 保留五位精度
+        try:
+            return x.round(5)
+        except TypeError:
+            return x
+
+    return res.apply(decimal_precision)
 
 
 def output_metrics_to_excel(model, output_file=None, sheet_name='sheet1', data=None):

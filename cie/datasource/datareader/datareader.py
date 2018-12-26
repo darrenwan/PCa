@@ -144,9 +144,9 @@ class CsvChannel(BaseChannel):
         data = pd.read_csv(self.source, **kwargs)
         columns = data.columns.values
         if data_type == 'dataframe':
-            if label is not None:
-                data.rename(columns={data.columns[label]: "label"}, inplace=True)
-            res = (data, columns)
+            # if label is not None:
+            #     data.rename(columns={data.columns[label]: "label"}, inplace=True)
+            res = (data, data.columns.values)
         else:
             if label is not None:
                 labels = data.iloc[:, label]

@@ -12,6 +12,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import os
 
 # use TkAgg backend
 matplotlib.use("TkAgg")
@@ -20,6 +21,10 @@ plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['savefig.dpi'] = 200
 plt.rcParams['figure.dpi'] = 200
+
+tuning_folder = './output/tuning/'
+if not os.path.exists(tuning_folder):
+    os.makedirs(tuning_folder)
 
 
 def grid_search_tuning(estimator, x_train, y_train, x_test, y_test, param_grid=None, cv=5,
@@ -130,6 +135,7 @@ def grid_search_tuning(estimator, x_train, y_train, x_test, y_test, param_grid=N
     plt.legend(loc="best")
     plt.grid('off')
     plt.show()
+    plt.savefig(stat_folder + "频次-" + name + ".png")
 
     if features_names is not None:
         feat_imp = pd.Series(best_estimator.fit(x_train, y_train).feature_importances_, features_names).sort_values(
@@ -227,7 +233,7 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, scoring=None, cv=None
     plt.legend(loc="best")
     return plt
 
-    
+
 def plot_roc(model, X, y):
     """
     Plot ROC curve of 'model' on X and y.
@@ -242,29 +248,30 @@ def plot_roc(model, X, y):
     -------
     ROC curve
     """
-    #plot setting
+    # plot setting
     plt.style.use("ggplot")
     f = plt.subplot()
-    f.set_title('ROC Curve (%s)' % model.__class__.__name__ , {'fontsize':20})
+    f.set_title('ROC Curve (%s)' % model.__class__.__name__, {'fontsize': 20})
     f.set_xlabel('fpr', {'fontsize': 20})
     f.set_ylabel('tpr', {'fontsize': 20})
-    
-    proba = model.predict_proba(X)[:,1]
+
+    proba = model.predict_proba(X)[:, 1]
     fpr, tpr, thr = roc_curve(y, proba)
     line, = f.plot(fpr, tpr)
-    
+
     f.legend(line, model.__class__.__name__, loc='lower right', fontsize='large')
+
 
 def _round(x):
     if isinstance(x, float):
         return np.round(x, 3)
     else:
-        return x    
-    
+        return x
+
 
 def classific_report(model, X, y):
     """
-    classification performence of 'model' on X and y.
+    classification performance of 'model' on X and y.
 
     Parameters
     ----------
@@ -277,33 +284,32 @@ def classific_report(model, X, y):
     the values of main evaluation metrics with respect to 'model'
     """
     print(model.__class__.__name__)
-    
+
     pred = model.predict(X)
     print('%d个特征' % X.shape[1])
     acc = model.score(X, y)
     print('准确率', acc)
-    
-    confusionMatrix = confusion_matrix(y, pred)        
-    print(confusionMatrix)
-    
-    if len(np.unique(y)) == 2:        
-        proba = model.predict_proba(X)[:,1]
-        auc = roc_auc_score(y, proba)
-        print('AUC', auc)    
 
-    
+    confusionMatrix = confusion_matrix(y, pred)
+    print(confusionMatrix)
+
+    if len(np.unique(y)) == 2:
+        proba = model.predict_proba(X)[:, 1]
+        auc = roc_auc_score(y, proba)
+        print('AUC', auc)
+
     sensitivity = confusionMatrix[0, 0] / confusionMatrix.sum(axis=0)[0]
     specificity = confusionMatrix[1, 1] / confusionMatrix.sum(axis=0)[1]
     print('敏感度: %.3f, 特异度: %.3f' % (sensitivity, specificity))
-    
-    performence = [model.__class__.__name__, acc, sensitivity, specificity]
-    performence = list(map(_round, performence))
-    return performence
+
+    performance = [model.__class__.__name__, acc, sensitivity, specificity]
+    performance = list(map(_round, performance))
+    return performance
 
 
 def regression_report(model, X, y):
     """
-    regression performence of 'model' on X and y.
+    regression performance of 'model' on X and y.
 
     Parameters
     ----------
@@ -316,12 +322,12 @@ def regression_report(model, X, y):
     the values of main evaluation metrics with respect to 'model'
     """
     print(model.__class__.__name__)
-    performence = []
+    performance = []
     pred = model.predict(X)
     mae = mean_absolute_error(y, pred)
     mse = mean_squared_error(y, pred)
     evs = explained_variance_score(y, pred)
     r2 = r2_score(y, pred)
-    performence = [model.__class__.__name__, mae, mse, evs, r2]
-    performence = list(map(_round, performence))
-    return performence
+    performance = [model.__class__.__name__, mae, mse, evs, r2]
+    performance = list(map(_round, performance))
+    return performance

@@ -14,12 +14,9 @@ plt.rcParams['axes.unicode_minus'] = False
 plt.rcParams['savefig.dpi'] = 180
 plt.rcParams['figure.dpi'] = 180
 
-eda_folder = './eda/'
-stat_folder = eda_folder + 'stat/'
-if not os.path.exists(eda_folder):
-    os.makedirs(eda_folder)
-    if not os.path.exists(stat_folder):
-        os.makedirs(stat_folder)
+stat_folder = './output/eda/'
+if not os.path.exists(stat_folder):
+    os.makedirs(stat_folder)
 
 
 def stat_missing_values(data):
@@ -47,6 +44,79 @@ def stat_missing_values(data):
     ax.set_title("Number of missing values")
     plt.savefig(stat_folder + "缺失值统计.png")
     return plt
+
+
+def stat_freq_continious(data, num_bins=10):
+    """
+    统计连续型特征的频次，data的列必须是连续型。
+    :param data: DataFrame
+    :param num_bins:
+    :return:
+    """
+    values = data.columns.values
+    print(values)
+    data = data.fillna('nan')
+    # 连续性变量，等宽成num_bins来处理
+    cut_bins = np.linspace(0, 1, num_bins + 1)
+    q = data.quantile(cut_bins).values
+    length = len(values)
+    for i in range(length):
+        name = values[i]
+        # 合并相同区间（幂律分布可能导致很多分位数值相同）
+        q_this = list(set(q[:, i]))
+        q_this.sort()
+        if len(q_this) > 1:
+            # cut是左开区间，所以将0分位数减去epsilon
+            q_this[0] = q_this[0] - np.finfo(np.float32).eps
+            cut_labels = ["%.2f" % float(p) + "~" + "%.2f" % float(n) for (p, n) in list(zip(q_this, q_this[1:]))]
+            data[name + '_cut'] = pd.cut(data[name], bins=q_this, labels=cut_labels)
+            counts = data[name + '_cut'].value_counts(dropna=False)
+        else:
+            # 如果该col的值总共只有1个
+            counts = data[name].value_counts(dropna=False)
+        indexes = counts.index.values
+        values = counts.values
+
+        # 按照区间值排序
+        def sort_func(d):
+            try:
+                return float(d[0].split("~")[0])
+            except AttributeError:
+                return float(np.inf)
+
+        lst = sorted(zip(indexes, values), key=sort_func)
+        x, y = list(zip(*lst))
+        plt.bar(x, y)
+        plt.xticks(rotation=75)
+        plt.subplots_adjust(bottom=.3)
+        plt.title(name)
+        plt.ylabel('频次')
+        # plt.show()
+        plt.savefig(stat_folder + "频次-" + name + ".png")
+        plt.gcf().clear()
+
+
+def stat_freq_categrical(data):
+    """
+    统计离散型特征的频次
+    :param data: DataFrame
+    :return:
+    """
+    values = data.columns.values
+    features = data.fillna('nan')
+    # 连续性变量，等宽成num_bins来处理
+    length = len(values)
+    for i in range(length):
+        name = values[i]
+        counts = features[name].value_counts(dropna=False)
+        counts.plot(kind='bar')
+        plt.xticks(rotation=75)
+        plt.subplots_adjust(bottom=.3)
+        plt.title(name)
+        plt.ylabel('频次')
+        # plt.show()
+        plt.savefig(stat_folder + "频次-" + name + ".png")
+        plt.gcf().clear()
 
 
 def stat_freq(data, data_type='dataframe', names=None, force_cat_cols=None, num_bins=10):
