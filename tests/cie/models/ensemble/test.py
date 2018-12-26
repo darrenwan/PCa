@@ -15,7 +15,7 @@ def test_stacking():
     from sklearn.metrics import mean_absolute_error
     from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
     from xgboost import XGBRegressor
-    from cie.models.combination import StackingTransformer
+    from cie.models.ensemble import StackingTransformer
 
     # Load demo data
     boston = load_boston()

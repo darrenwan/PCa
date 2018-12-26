@@ -11,8 +11,8 @@ matplotlib.use("TkAgg")
 
 plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
-plt.rcParams['savefig.dpi'] = 200
-plt.rcParams['figure.dpi'] = 200
+plt.rcParams['savefig.dpi'] = 180
+plt.rcParams['figure.dpi'] = 180
 
 eda_folder = './eda/'
 stat_folder = eda_folder + 'stat/'
@@ -20,6 +20,33 @@ if not os.path.exists(eda_folder):
     os.makedirs(eda_folder)
     if not os.path.exists(stat_folder):
         os.makedirs(stat_folder)
+
+
+def stat_missing_values(data):
+    """
+    统计缺失值数量，并画图，保存为"缺失值统计.png"
+    :param data: dataframe, 需要统计的缺失值
+    :return: plt
+    """
+    missing = data.isnull().sum(axis=0).reset_index()
+    missing.columns = ['column_name', 'missing_count']
+    missing = missing.loc[missing['missing_count'] > 0]
+    missing = missing.sort_values(by='missing_count')
+
+    ind = np.arange(missing.shape[0])
+    fig, ax = plt.subplots(figsize=(12, 18))
+    rects = ax.barh(ind, missing.missing_count.values)
+    cnt = missing.missing_count.values
+    for j, rect in enumerate(rects):
+        plt.text(rect.get_x() + rect.get_width() / 2, rect.get_y() + rect.get_height() / 2,
+                 '%.0f' % cnt[j], ha='center', va='center', fontsize=12)
+
+    ax.set_yticks(ind)
+    ax.set_yticklabels(missing.column_name.values, rotation='horizontal')
+    ax.set_xlabel("Count of missing values")
+    ax.set_title("Number of missing values")
+    plt.savefig(stat_folder + "缺失值统计.png")
+    return plt
 
 
 def stat_freq(data, data_type='dataframe', names=None, force_cat_cols=None, num_bins=10):

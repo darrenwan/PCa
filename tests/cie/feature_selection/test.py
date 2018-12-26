@@ -1,8 +1,5 @@
 from sklearn.feature_selection import VarianceThreshold, SelectKBest, SelectFromModel
-import numpy as np
 from cie.feature_selection.feature_selection import FeatureSelectionLr12
-import pytest
-
 
 num_features = 3
 
@@ -30,6 +27,7 @@ def test_corr():
 
     def score_func(X, y):
         return list(zip(*map(lambda x: pearsonr(x, y), X.T)))
+
     result = SelectKBest(score_func=score_func, k=num_features).fit_transform(X, y)
     print(result[:5])
 
@@ -53,6 +51,7 @@ def test_mine():
             m = MINE()
             m.compute_score(x, y)
             return m.mic(), 0.5
+
         # 如果有p-value，则返回list或者tuple
         # 否则，返回其他类型，比如ndarray
         # np.array(list(map(lambda x: mic(x, y), X.T)))
@@ -62,17 +61,6 @@ def test_mine():
     print(result[:5])
 
 
-def test_rfe():
-    from sklearn.feature_selection import RFE
-    from sklearn.linear_model import LogisticRegression
-
-    X, y = load_data()
-    print(np.unique(y))
-    result = RFE(estimator=LogisticRegression(multi_class='auto', solver='lbfgs', max_iter=500),
-                 n_features_to_select=5).fit_transform(X, y)
-    print(result[:2])
-
-
 def test_l1():
     from sklearn.linear_model import LogisticRegression
 
@@ -80,7 +68,7 @@ def test_l1():
 
     # smaller C, stronger regularization
     model = SelectFromModel(LogisticRegression(multi_class='auto', penalty="l1", C=0.01)).fit(X, y)
-    print(model._get_support_mask())
+    print(model.get_support())
     result = model.transform(X)
     print(result)
 
@@ -108,13 +96,78 @@ def test_gbdt():
     print(result[:5])
 
 
+def test_sfs_sbs_floating():
+    # SFS, SBS, SFFS, SFBS
+    from sklearn.ensemble import GradientBoostingClassifier
+    from mlxtend.feature_selection import SequentialFeatureSelector
+
+    X, y = load_data()
+    estimator = GradientBoostingClassifier()
+    forwards = [True, False]
+    floatings = [False, True]
+    for forward in forwards:
+        for floating in floatings:
+            sfs = SequentialFeatureSelector(estimator,
+                                            k_features=2,
+                                            forward=forward,
+                                            floating=floating,
+                                            verbose=0,
+                                            scoring='accuracy',
+                                            cv=5)
+            model = sfs.fit(X, y)
+            result = model.transform(X)
+            print()
+            print("(forward, floating)", (forward, floating))
+            print("k_feature_idx_:", model.k_feature_idx_)
+            print(result[:5])
+
+
+def test_rfe():
+    # similar to sequential step wise backward selection
+    from sklearn.feature_selection import RFE
+    from sklearn.ensemble import GradientBoostingClassifier
+    # from sklearn.linear_model import LogisticRegression
+
+    X, y = load_data()
+    print("shape: ", X.shape)
+    estimator = GradientBoostingClassifier()
+    model = RFE(estimator=estimator, n_features_to_select=4).fit(X, y)
+    result = model.transform(X)
+    print()
+    print("get_support()", model.scores_)
+    print(result[:2])
+
+
+def test_sfs():
+    from cie.feature_selection.sfs_alg import Sfs
+    from sklearn.ensemble import GradientBoostingClassifier
+    # from sklearn.linear_model import LogisticRegression
+
+    X, y = load_data()
+    print("shape: ", X.shape)
+    estimator = GradientBoostingClassifier()
+    model = Sfs(estimator,
+                verbose=0, scoring=None,
+                cv=5, n_jobs=1,
+                persist_features=None,
+                pre_dispatch='2*n_jobs',
+                clone_estimator=True).fit(X, y)
+    result = model.transform(X)
+    print()
+    print(model.selected)
+    print(model.get_metric_dict())
+    print(result[:2])
+
+
 if "__main__" == __name__:
     # test_var_threshold()
     # test_corr()
     # test_chi2()
-    # test_rfe()
     # test_mine()
     # test_l1()
     # test_l1l2()
     # test_gbdt()
-    pytest.main([__file__])
+    # test_sfs_sbs_floating()
+    # test_rfe()
+    test_sfs()
+    # pytest.main([__file__])
