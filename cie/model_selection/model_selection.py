@@ -63,12 +63,12 @@ def train_test_split(X, y, **options):
 
     """
     X_columns = X.columns
-    y_name = y.name
+    y_columns = y.columns
     X_train, X_val, y_train, y_val = ms.train_test_split(X, y, **options)
     X_train = pd.DataFrame(X_train, columns=X_columns)
     X_val = pd.DataFrame(X_val, columns=X_columns)
-    y_train = pd.Series(y_train, name=y_name)
-    y_val = pd.Series(y_val, name=y_name)
+    y_train = pd.DataFrame(y_train, columns=y_columns)
+    y_val = pd.DataFrame(y_val, columns=y_columns)
 
     return X_train, X_val, y_train, y_val
 

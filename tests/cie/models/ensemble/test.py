@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
-
+from cie.data import CieDataFrame
 from cie.common import logger
-from cie.evaluate.evaluation import *
-from sklearn.tree import DecisionTreeClassifier
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
+from cie.evaluate import *
 
 logger = logger.get_logger(name=logger.get_name(__file__))
 
 
 def test_stacking():
-    from sklearn.datasets import load_boston
-    from sklearn.model_selection import train_test_split
-    from sklearn.metrics import mean_absolute_error
-    from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
-    from xgboost import XGBRegressor
+    from cie.data import load_boston
+    from cie.model_selection import train_test_split
+    from cie.evaluate.metrics import mean_absolute_error
+    from cie.models.ensemble import ExtraTreesRegressor, RandomForestRegressor
+    from cie.models.ensemble import XGBRegressor
     from cie.models.ensemble import StackingTransformer
 
     # Load demo data
     boston = load_boston()
     X, y = boston.data, boston.target
-
+    X = CieDataFrame.to_cie_data(X)
+    y = CieDataFrame.to_cie_data(y)
     # Make train/test split
     X_train, X_test, y_train, y_test = train_test_split(X, y,
                                                         test_size=0.2,
@@ -69,7 +67,38 @@ def test_stacking():
     print('stacking MAE: [%.8f]' % stacking_mae)
 
 
+def test_classifier():
+    from cie.models.ensemble import GradientBoostingClassifier
+    from cie.data import make_classification
+    X, y = make_classification(n_samples=20)
+    X = CieDataFrame.to_cie_data(X)
+    y = CieDataFrame.to_cie_data(y)
+    labels, y = np.unique(y, return_inverse=True)
+    gb = GradientBoostingClassifier()
+    gb.fit(X, y)
+    test_deviance = np.zeros(gb.n_estimators, dtype=np.float64)
+    for i, y_pred in enumerate(gb.staged_decision_function(X)):
+        test_deviance[i] = gb.loss_(y, y_pred)
+    # plt.plot((np.arange(test_deviance.shape[0]) + 1)[::5], test_deviance[::5],'-')
+    # plt.show()
+
+
+def test_regressor():
+    from cie.models.ensemble import XGBRegressor
+    from cie.data import make_regression
+    X, y = make_regression(n_samples=20)
+    X = CieDataFrame.to_cie_data(X)
+    y = CieDataFrame.to_cie_data(y)
+    labels, y = np.unique(y, return_inverse=True)
+    xgb = XGBRegressor(max_depth=5, learning_rate=0.1, n_estimators=160, silent=True, objective='reg:gamma')
+    xgb.fit(X, y)
+    y_pred = xgb.predict(X)
+    print(r2_score(y, y_pred))
+
+
 if __name__ == "__main__":
     print("program begins")
     test_stacking()
+    test_classifier()
+    test_regressor()
     print("program ends")

@@ -5,7 +5,8 @@ Created on Wed Aug 15 17:57:56 2018
 @author: atlan
 """
 
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder, StandardScaler, PowerTransformer
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder, StandardScaler, PowerTransformer, MinMaxScaler, \
+    PolynomialFeatures, LabelBinarizer
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.utils import check_array
 
@@ -14,6 +15,9 @@ import pandas as pd
 from scipy.stats import skew
 import scipy.special as ss
 from sklearn.base import BaseEstimator, TransformerMixin
+
+__all__ = ['SkewPowerTransformer', 'OneHotEncoder', 'LabelEncoder', 'StandardScaler', 'PowerTransformer',
+           'MinMaxScaler', 'VarianceThreshold', 'PolynomialFeatures', 'LabelBinarizer']
 
 
 class SkewPowerTransformer(BaseEstimator, TransformerMixin):
@@ -292,7 +296,6 @@ class Preprocess(object):
         """
         找出偏态大于skew_thresh的特征
         :param data: ndarray或者dataframe, 特征数据
-        :param column_names: ndarray, 列名
         :param skew_thresh: float, skew阈值
         :return: 发生转换的columns名称
         """
@@ -304,9 +307,7 @@ class Preprocess(object):
         # series.skew()
         skew_val = df.apply(lambda x: skew(x.dropna(), axis=0, bias=False)).sort_values(ascending=False)
         skew_val = pd.DataFrame({'skew': skew_val})
-        print(skew_val)
         skew_val = skew_val[abs(skew_val) > skew_thresh].dropna()
-        print(skew_val)
         cols = skew_val.index
         if isinstance(data, pd.DataFrame):
             return np.asanyarray(cols)

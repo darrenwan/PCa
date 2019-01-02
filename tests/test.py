@@ -80,7 +80,9 @@ def feature_selection(X_train, y_train, X_val, y_val, X_test, y_test):
     print("begin to select features")
     from cie.feature_selection import Sfs
     # from mlxtend.feature_selection import SequentialFeatureSelector
-    # X = X.iloc[:, :4]
+    # X_train = X_train.iloc[:, :4]
+    # X_val = X_val.iloc[:, :4]
+    # X_test = X_test.iloc[:, :4]
     estimator = GradientBoostingClassifier()
     # sfs = SequentialFeatureSelector(estimator,
     #                                 k_features=2,
@@ -177,7 +179,7 @@ if "__main__" == __name__:
 
     if has_feature_selection:
         # 特征选择
-        X_train, X_val, X_test = feature_selection(X_train, y_train)
+        X_train, X_val, X_test = feature_selection(X_train, y_train, X_val, y_val, X_test, y_test)
 
     if has_tuning_param:
         # 参数tuning

@@ -24,3 +24,7 @@ class RidgeRegression(lm.Ridge):
 
 class RidgeClassifier(lm.RidgeClassifier):
     pass
+
+
+class SGDRegressor(lm.SGDRegressor):
+    pass

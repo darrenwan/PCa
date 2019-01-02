@@ -1,8 +1,68 @@
-from sklearn.metrics import confusion_matrix, precision_recall_fscore_support, roc_auc_score
+from sklearn.metrics import *
 from sklearn.preprocessing import label_binarize
-from sklearn.utils.multiclass import unique_labels
-from sklearn.preprocessing import LabelEncoder
 import numpy as np
+
+__all__ = [
+    'accuracy_score',
+    'adjusted_mutual_info_score',
+    'adjusted_rand_score',
+    'auc',
+    'average_precision_score',
+    'balanced_accuracy_score',
+    'calinski_harabaz_score',
+    'check_scoring',
+    'classification_report',
+    'cluster',
+    'cohen_kappa_score',
+    'completeness_score',
+    'confusion_matrix',
+    'consensus_score',
+    'coverage_error',
+    'davies_bouldin_score',
+    'euclidean_distances',
+    'explained_variance_score',
+    'f1_score',
+    'fbeta_score',
+    'fowlkes_mallows_score',
+    'get_scorer',
+    'hamming_loss',
+    'hinge_loss',
+    'homogeneity_completeness_v_measure',
+    'homogeneity_score',
+    'jaccard_similarity_score',
+    'label_ranking_average_precision_score',
+    'label_ranking_loss',
+    'log_loss',
+    'make_scorer',
+    'matthews_corrcoef',
+    'mean_absolute_error',
+    'mean_squared_error',
+    'mean_squared_log_error',
+    'median_absolute_error',
+    'mutual_info_score',
+    'normalized_mutual_info_score',
+    'pairwise_distances',
+    'pairwise_distances_argmin',
+    'pairwise_distances_argmin_min',
+    'pairwise_distances_argmin_min',
+    'pairwise_distances_chunked',
+    'pairwise_kernels',
+    'precision_recall_curve',
+    'precision_recall_fscore_support',
+    'precision_score',
+    'r2_score',
+    'recall_score',
+    'roc_auc_score',
+    'roc_curve',
+    'SCORERS',
+    'silhouette_samples',
+    'silhouette_score',
+    'v_measure_score',
+    'zero_one_loss',
+    'brier_score_loss',
+    'score_metrics',
+    'scores_avg_metrics',
+]
 
 
 def score_metrics(y_true, y_pred, score_classes=(None, None), average="macro"):
@@ -26,6 +86,8 @@ def score_metrics(y_true, y_pred, score_classes=(None, None), average="macro"):
     (labels, auc, tpr, spc, ppv, npv, f1, acc, support)，
         即(标签，AUC, 敏感性, 特异性, 阳性预测值, 阴性预测值, F1, 准确率, 样本量)
     """
+    from sklearn.preprocessing import LabelEncoder
+    # from sklearn.utils.multiclass import unique_labels
     # labels = unique_labels(y_true, y_pred)
     y_score, labels = score_classes
     confusion = confusion_matrix(y_true, y_pred, labels=labels)
@@ -67,14 +129,14 @@ def score_metrics(y_true, y_pred, score_classes=(None, None), average="macro"):
         n_labels = len(labels)
         y_true = le.transform(y_true)
         y_true = label_binarize(y_true, np.arange(n_labels))
-        auc = [roc_auc_score(y_true[:, idx], y_score[:, idx], average=average) for idx in range(n_labels)]
+        auc_measure = [roc_auc_score(y_true[:, idx], y_score[:, idx], average=average) for idx in range(n_labels)]
     else:
-        auc = None
+        auc_measure = None
     tpr[np.isnan(tpr)] = 0.0
     ppv[np.isnan(ppv)] = 0.0
     npv[np.isnan(npv)] = 0.0
     f1[np.isnan(f1)] = 0.0
-    return labels, auc, tpr, spc, ppv, npv, f1, acc, support
+    return labels, auc_measure, tpr, spc, ppv, npv, f1, acc, support
 
 
 def scores_avg_metrics(y_true, y_pred, score_classes=(None, None)):
@@ -102,6 +164,7 @@ def scores_avg_metrics(y_true, y_pred, score_classes=(None, None)):
             其中（precision, recall, f_score, true_sum）的true_sum为None.
         no_avg: 返回一个ndarray, [5, num_labels], 行分别表示precision, recall, f_score, true_sum，auc， 列表示分类数。
     """
+    from sklearn.preprocessing import LabelEncoder
     y_score, labels = score_classes
     dct = {}
     le = LabelEncoder()
@@ -114,6 +177,6 @@ def scores_avg_metrics(y_true, y_pred, score_classes=(None, None)):
         metrics.append(roc_auc_score(y_indicator_true, y_score, average=key))
         dct[key] = np.array(metrics)
     no_avg = precision_recall_fscore_support(y_true, y_pred, average=None, labels=labels)
-    auc = [roc_auc_score(y_indicator_true[:, idx], y_score[:, idx], average=None) for idx in range(n_labels)]
-    dct['no_avg'] = np.concatenate((np.array(no_avg), np.array(auc).reshape(1, 3)), axis=0)
+    auc_measure = [roc_auc_score(y_indicator_true[:, idx], y_score[:, idx], average=None) for idx in range(n_labels)]
+    dct['no_avg'] = np.concatenate((np.array(no_avg), np.array(auc_measure).reshape(1, 3)), axis=0)
     return labels, dct

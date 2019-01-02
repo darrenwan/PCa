@@ -80,8 +80,8 @@ class ExcelChannel(BaseChannel):
         data = pd.read_excel(self.source, **kwargs)
         columns = data.columns.values
         if data_type == 'dataframe':
-            if label is not None:
-                data.rename(columns={data.columns[label]: "label"}, inplace=True)
+            # if label is not None:
+            #     data.rename(columns={data.columns[label]: "label"}, inplace=True)
             res = (data, columns)
         else:
             if label is not None:
