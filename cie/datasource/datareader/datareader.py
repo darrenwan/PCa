@@ -8,7 +8,7 @@ from cie.common import inherit_doc
 class BaseChannel(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, source):
+    def __init__(self, source=None):
         """
         construct a channel.
         :param source: source name. e.g. file path for excel/csv, database name for mongodb
@@ -169,7 +169,7 @@ class MongoChannel(BaseChannel):
     >>>    "local": False,
     >>>    "ssh_addr": "47.99.191.80",
     >>>    "ssh_port": 22,
-    >>>    "mongo_user": "",
+    >>>    "ssh_user": "",
     >>>    "ssh_host_key": None,
     >>>    "ssh_pwd": None,
     >>>    "ssh_pkey": None,
@@ -195,7 +195,7 @@ class MongoChannel(BaseChannel):
             "local": False,
             "ssh_addr": "47.99.191.80",
             "ssh_port": 22,
-            "mongo_user": "",
+            "ssh_user": "",
             "ssh_host_key": None,
             "ssh_pwd": None,
             "ssh_pkey": None,
@@ -213,7 +213,7 @@ class MongoChannel(BaseChannel):
             from sshtunnel import SSHTunnelForwarder
             server = SSHTunnelForwarder(
                 ssh_address_or_host=(param_dct["ssh_addr"], param_dct["ssh_port"]),
-                ssh_username=param_dct["mongo_user"],
+                ssh_username=param_dct["ssh_user"],
                 ssh_pkey=param_dct["ssh_pkey"],
                 ssh_host_key=param_dct["ssh_host_key"],
                 ssh_password=param_dct["ssh_pwd"],
@@ -236,30 +236,28 @@ class MongoChannel(BaseChannel):
         if server:
             setattr(self, "server", server)
 
-    def read(self, **kwargs):
+    def read(self, query=None, projection=None):
         """
         read data from the database.
-        :param kwargs: parameters
-                       `query`: optional, a SON object specifying elements which must be present for a document
+        :param query: optional, a SON object specifying elements which must be present for a document
                                 to be included in the result set
-                       `projection`: optional, a list of field names that should be returned in the result
-                                     set or a dict specifying the fields to include or exclude. If projection
-                                     is a list “_id” will always be returned. Use a dict to exclude fields
-                                     from the result (e.g. projection={‘_id’: False}).
-        :return: A cursor to the documents that match the query criteria.
+        :param projection: optional, a list of field names that should be returned in the result
+                             set or a dict specifying the fields to include or exclude. If projection
+                             is a list “_id” will always be returned. Use a dict to exclude fields
+                             from the result (e.g. projection={‘_id’: False}).
+        :return: A dataframe to the documents that match the query criteria.
         """
-        query = kwargs.get("query")
-        projection = kwargs.get("projection")
         db_col = getattr(self, "db_col")
-        data = db_col.find(query=query, projection=projection)
-        return data
+        data = db_col.find(query, projection)
+        return pd.DataFrame(list(data))
 
     def write(self, data):
         """
         Insert an iterable of documents.
-        :param data: A iterable of documents to insert.
+        :param data: A dataframe of documents to insert.
         :return: An instance of InsertManyResult.
         """
+        data = data.to_dict('records')
         db_col = getattr(self, "db_col")
         from collections import Iterable
         if isinstance(data, Iterable):

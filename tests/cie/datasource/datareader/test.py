@@ -97,8 +97,33 @@ def test_mongodb():
 
     # cursor = db..ALA.find_one()
 
+
+def test_mongo():
+    param_dct = {
+        "local": False,
+        "ssh_addr": "47.99.46.195",  # 跳板机地址
+        "ssh_port": 22,  # 跳板机端口
+        "ssh_user": "hitales",  # 跳板机用户名
+        "ssh_pkey": './private_key',  # 跳板机private key
+        "mongo_host": 'dds-bp1d8d8bebde53b41.mongodb.rds.aliyuncs.com',  # mongodb地址
+        "mongo_port": 3717,  # mongodb端口
+        "db_user": "root",  # mongodb 用户名
+        "db_pwd": "Yiy1health_2017",  # mongodb 密码
+        "db_name": "admin",  # mongodb database
+        "col_name": "cnki-data",  # mongodb collection名
+        "auth_method": "SCRAM-SHA-1",  # mongodb 加密机制
+    }
+    channel = MongoChannel()
+    channel.open(**param_dct)
+    query = {"fst_cat": "medicine", "item_name": {"$regex": "可乐定"}}
+    df = channel.read(query=query)
+    print(df)
+    channel.close()
+
+
 if __name__ == '__main__':
-    test_csv_reader()
+    # test_csv_reader()
+    test_mongo()
 
 
 
