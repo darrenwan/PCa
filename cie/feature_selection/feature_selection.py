@@ -1,10 +1,23 @@
 from cie.feature_selection.sfs_alg import SequentialForwardSelector
-from cie.feature_selection.lr12 import FeatureSelectionLr12
+# from cie.feature_selection.lr12 import FeatureSelectionLr12
 import sklearn.feature_selection as fs
 import mlxtend.feature_selection as xfs
+from sklearn.feature_selection import chi2, f_classif, f_oneway, f_regression
 import pandas as pd
-from abc import ABCMeta, abstractmethod
-import six
+import numpy as np
+# from abc import ABCMeta, abstractmethod
+# import six
+
+__all__ = [
+    'RFE',
+    'SelectKBest',
+    'SelectFromModel',
+    'VarianceThreshold',
+    'chi2',
+    'f_classif',
+    'f_oneway',
+    'f_regression',
+    'SequentialFeatureSelector', 'Sfs']
 
 
 class SequentialFeatureSelector(xfs.SequentialFeatureSelector):
@@ -106,123 +119,90 @@ class SequentialFeatureSelector(xfs.SequentialFeatureSelector):
     http://rasbt.github.io/mlxtend/user_guide/feature_selection/SequentialFeatureSelector/
 
     """
-    def fit(self, X, y):
+    def fit(self, X, y=None):
         self.columns = X.columns
+        if y is not None:
+            y = y[y.columns[0]].values
+            X = X.values
         return super(SequentialFeatureSelector, self).fit(X, y)
 
     def transform(self, X):
-        arr_X = super(SequentialFeatureSelector, self).transform(X)
-        return pd.DataFrame(arr_X, columns=self.columns)
+        arr_X = super(SequentialFeatureSelector, self).transform(X.values)
+        print("self.k_feature_idx_", self.k_feature_idx_)
+        columns = np.array(self.columns)[list(self.k_feature_idx_)]
+        return pd.DataFrame(arr_X, columns=columns)
 
 
 class RFE(fs.RFE):
-    """Feature ranking with recursive feature elimination.
 
-    Given an external estimator that assigns weights to features (e.g., the
-    coefficients of a linear model), the goal of recursive feature elimination
-    (RFE) is to select features by recursively considering smaller and smaller
-    sets of features. First, the estimator is trained on the initial set of
-    features and the importance of each feature is obtained either through a
-    ``coef_`` attribute or through a ``feature_importances_`` attribute.
-    Then, the least important features are pruned from current set of features.
-    That procedure is recursively repeated on the pruned set until the desired
-    number of features to select is eventually reached.
-
-    Read more in the :ref:`User Guide <rfe>`.
-
-    Parameters
-    ----------
-    estimator : object
-        A supervised learning estimator with a ``fit`` method that provides
-        information about feature importance either through a ``coef_``
-        attribute or through a ``feature_importances_`` attribute.
-
-    n_features_to_select : int or None (default=None)
-        The number of features to select. If `None`, half of the features
-        are selected.
-
-    step : int or float, optional (default=1)
-        If greater than or equal to 1, then ``step`` corresponds to the
-        (integer) number of features to remove at each iteration.
-        If within (0.0, 1.0), then ``step`` corresponds to the percentage
-        (rounded down) of features to remove at each iteration.
-
-    verbose : int, (default=0)
-        Controls verbosity of output.
-
-    Attributes
-    ----------
-    n_features_ : int
-        The number of selected features.
-
-    support_ : array of shape [n_features]
-        The mask of selected features.
-
-    ranking_ : array of shape [n_features]
-        The feature ranking, such that ``ranking_[i]`` corresponds to the
-        ranking position of the i-th feature. Selected (i.e., estimated
-        best) features are assigned rank 1.
-
-    estimator_ : object
-        The external estimator fit on the reduced dataset.
-
-    Examples
-    --------
-    The following example shows how to retrieve the 5 right informative
-    features in the Friedman #1 dataset.
-
-    >>> from sklearn.datasets import make_friedman1
-    >>> from cie.feature_selection import RFE
-    >>> from sklearn.svm import SVR
-    >>> X, y = make_friedman1(n_samples=50, n_features=10, random_state=0)
-    >>> estimator = SVR(kernel="linear")
-    >>> selector = RFE(estimator, 5, step=1)
-    >>> selector = selector.fit(X, y)
-    >>> selector.support_ # doctest: +NORMALIZE_WHITESPACE
-    array([ True,  True,  True,  True,  True, False, False, False, False,
-           False])
-    >>> selector.ranking_
-    array([1, 1, 1, 1, 1, 6, 4, 3, 2, 5])
-
-    See also
-    --------
-    RFECV : Recursive feature elimination with built-in cross-validated
-        selection of the best number of features
-
-    References
-    ----------
-
-    .. [1] Guyon, I., Weston, J., Barnhill, S., & Vapnik, V., "Gene selection
-           for cancer classification using support vector machines",
-           Mach. Learn., 46(1-3), 389--422, 2002.
-    """
-    def fit(self, X, y):
+    def fit(self, X, y=None):
         self.columns = X.columns
+        if y is not None:
+            y = y[y.columns[0]].values
+            X = X.values
         return super(RFE, self).fit(X, y)
 
     def transform(self, X):
-        arr_X = super(RFE, self).transform(X)
-        return pd.DataFrame(arr_X, columns=self.columns)
+        arr_X = super(RFE, self).transform(X.values)
+        columns = np.array(self.columns)[self.get_support()]
+        return pd.DataFrame(arr_X, columns=columns)
 
 
 class Sfs(SequentialForwardSelector):
 
-    def fit(self, X, y):
+    def fit(self, X, y=None):
         self.columns = X.columns
+        if y is not None:
+            y = y[y.columns[0]].values
+            X = X.values
         return super(Sfs, self).fit(X, y)
 
     def transform(self, X):
-        arr_X = super(Sfs, self).transform(X)
-        return pd.DataFrame(arr_X, columns=self.columns)
+        arr_X = super(Sfs, self).transform(X.values)
+        columns = np.array(self.columns)[self.selected]
+        return pd.DataFrame(arr_X, columns=columns)
 
 
 class SelectFromModel(fs.SelectFromModel):
 
-    def fit(self, X, y):
+    def fit(self, X, y=None):
         self.columns = X.columns
+        if y is not None:
+            y = y[y.columns[0]].values
+            X = X.values
         return super(SelectFromModel, self).fit(X, y)
 
     def transform(self, X):
-        arr_X = super(SelectFromModel, self).transform(X)
-        return pd.DataFrame(arr_X, columns=self.columns)
+        arr_X = super(SelectFromModel, self).transform(X.values)
+        columns = np.array(self.columns)[self.get_support()]
+        return pd.DataFrame(arr_X, columns=columns)
+
+
+class VarianceThreshold(fs.VarianceThreshold):
+    def fit(self, X, y=None):
+        self.columns = X.columns
+        if y is not None:
+            y = y[y.columns[0]].values
+            X = X.values
+        return super(VarianceThreshold, self).fit(X, y)
+
+    def transform(self, X):
+        arr_X = super(VarianceThreshold, self).transform(X.values)
+        columns = np.array(self.columns)[self.get_support()]
+        return pd.DataFrame(arr_X, columns=columns)
+
+
+class SelectKBest(fs.SelectKBest):
+
+    def fit(self, X, y=None):
+        self.columns = X.columns
+        if y is not None:
+            y = y[y.columns[0]].values
+            X = X.values
+        return super(SelectKBest, self).fit(X, y)
+
+    def transform(self, X):
+        arr_X = super(SelectKBest, self).transform(X.values)
+        columns = np.array(self.columns)[self.get_support()]
+        return pd.DataFrame(arr_X, columns=columns)
 

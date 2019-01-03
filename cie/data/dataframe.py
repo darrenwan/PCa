@@ -1,8 +1,8 @@
 import pandas as pd
 import sklearn.datasets as datasets
-from sklearn.datasets import load_boston
+from sklearn.datasets import load_boston, load_iris
 
-__all__ = ['CieDataFrame', 'make_classification', 'make_regression', 'load_boston']
+__all__ = ['CieDataFrame', 'make_classification', 'make_regression', 'load_boston', 'load_iris']
 
 
 def make_classification(n_samples=100, n_features=20, n_informative=2,

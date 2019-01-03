@@ -1,20 +1,21 @@
-from sklearn.feature_selection import VarianceThreshold, SelectKBest, SelectFromModel
-from cie.feature_selection.feature_selection import FeatureSelectionLr12
+from cie.feature_selection import *
+from cie.models.ensemble import *
 
 num_features = 3
 
 
 def load_data():
-    from sklearn.datasets import load_iris
+    from cie.data import load_iris
+    from cie.data import CieDataFrame
 
-    iris = load_iris()
-    res = iris.data, iris.target
-    print(iris.data.shape, iris.target.shape)
-    return res
+    data = load_iris()
+    print(data.data.shape, data.target.shape)
+    return CieDataFrame.to_cie_data(data.data), CieDataFrame.to_cie_data(data.target)
 
 
 def test_var_threshold():
     X, y = load_data()
+    print(X.shape)
     selector = VarianceThreshold(threshold=0.1)
     result = selector.fit_transform(X)
     print(result[:5])
@@ -67,10 +68,10 @@ def test_l1():
     X, y = load_data()
 
     # smaller C, stronger regularization
-    model = SelectFromModel(LogisticRegression(multi_class='auto', penalty="l1", C=0.01)).fit(X, y)
+    model = SelectFromModel(LogisticRegression(multi_class='auto', penalty="l1", solver='liblinear', C=0.01)).fit(X, y)
     print(model.get_support())
     result = model.transform(X)
-    print(result)
+    print(result[:5])
 
 
 def test_l1l2():
@@ -83,8 +84,6 @@ def test_l1l2():
 
 
 def test_gbdt():
-    from sklearn.feature_selection import SelectFromModel
-    from sklearn.ensemble import GradientBoostingClassifier
 
     X, y = load_data()
     # 在没有设置threshold的情况下：
@@ -98,9 +97,6 @@ def test_gbdt():
 
 def test_sfs_sbs_floating():
     # SFS, SBS, SFFS, SFBS
-    from sklearn.ensemble import GradientBoostingClassifier
-    from mlxtend.feature_selection import SequentialFeatureSelector
-
     X, y = load_data()
     estimator = GradientBoostingClassifier()
     forwards = [True, False]
@@ -124,9 +120,6 @@ def test_sfs_sbs_floating():
 
 def test_rfe():
     # similar to sequential step wise backward selection
-    from sklearn.feature_selection import RFE
-    from sklearn.ensemble import GradientBoostingClassifier
-    # from sklearn.linear_model import LogisticRegression
 
     X, y = load_data()
     print("shape: ", X.shape)
@@ -134,15 +127,11 @@ def test_rfe():
     model = RFE(estimator=estimator, n_features_to_select=4).fit(X, y)
     result = model.transform(X)
     print()
-    print("get_support()", model.scores_)
+    print("get_support()", model.get_support())
     print(result[:2])
 
 
 def test_sfs():
-    from cie.feature_selection.sfs_alg import Sfs
-    from sklearn.ensemble import GradientBoostingClassifier
-    # from sklearn.linear_model import LogisticRegression
-
     X, y = load_data()
     print("shape: ", X.shape)
     estimator = GradientBoostingClassifier()
