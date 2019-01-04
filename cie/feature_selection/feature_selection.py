@@ -123,7 +123,7 @@ class SequentialFeatureSelector(xfs.SequentialFeatureSelector):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-            X = X.values
+        X = X.values
         return super(SequentialFeatureSelector, self).fit(X, y)
 
     def transform(self, X):
@@ -139,7 +139,7 @@ class RFE(fs.RFE):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-            X = X.values
+        X = X.values
         return super(RFE, self).fit(X, y)
 
     def transform(self, X):
@@ -154,7 +154,7 @@ class Sfs(SequentialForwardSelector):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-            X = X.values
+        X = X.values
         return super(Sfs, self).fit(X, y)
 
     def transform(self, X):
@@ -169,7 +169,7 @@ class SelectFromModel(fs.SelectFromModel):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-            X = X.values
+        X = X.values
         return super(SelectFromModel, self).fit(X, y)
 
     def transform(self, X):
@@ -183,7 +183,7 @@ class VarianceThreshold(fs.VarianceThreshold):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-            X = X.values
+        X = X.values
         return super(VarianceThreshold, self).fit(X, y)
 
     def transform(self, X):
@@ -198,7 +198,7 @@ class SelectKBest(fs.SelectKBest):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-            X = X.values
+        X = X.values
         return super(SelectKBest, self).fit(X, y)
 
     def transform(self, X):

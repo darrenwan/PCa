@@ -2,6 +2,7 @@
 from cie.data import CieDataFrame
 from cie.common import logger
 from cie.evaluate import *
+import pytest
 
 logger = logger.get_logger(name=logger.get_name(__file__))
 
@@ -14,11 +15,7 @@ def test_stacking():
     from cie.models.ensemble import XGBRegressor
     from cie.models.ensemble import StackingTransformer
 
-    # Load demo data
-    boston = load_boston()
-    X, y = boston.data, boston.target
-    X = CieDataFrame.to_cie_data(X)
-    y = CieDataFrame.to_cie_data(y)
+    X, y = load_boston()
     # Make train/test split
     X_train, X_test, y_train, y_test = train_test_split(X, y,
                                                         test_size=0.2,
@@ -71,8 +68,6 @@ def test_classifier():
     from cie.models.ensemble import GradientBoostingClassifier
     from cie.data import make_classification
     X, y = make_classification(n_samples=20)
-    X = CieDataFrame.to_cie_data(X)
-    y = CieDataFrame.to_cie_data(y)
     labels, y = np.unique(y, return_inverse=True)
     gb = GradientBoostingClassifier()
     gb.fit(X, y)
@@ -87,8 +82,6 @@ def test_regressor():
     from cie.models.ensemble import XGBRegressor
     from cie.data import make_regression
     X, y = make_regression(n_samples=20)
-    X = CieDataFrame.to_cie_data(X)
-    y = CieDataFrame.to_cie_data(y)
     labels, y = np.unique(y, return_inverse=True)
     xgb = XGBRegressor(max_depth=5, learning_rate=0.1, n_estimators=160, silent=True, objective='reg:gamma')
     xgb.fit(X, y)
@@ -98,7 +91,8 @@ def test_regressor():
 
 if __name__ == "__main__":
     print("program begins")
-    test_stacking()
-    test_classifier()
-    test_regressor()
+    # test_stacking()
+    # test_classifier()
+    # test_regressor()
+    pytest.main([__file__])
     print("program ends")

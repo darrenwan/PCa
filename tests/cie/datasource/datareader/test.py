@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 import pymongo
-import sys
 from sshtunnel import SSHTunnelForwarder
 from cie.datasource import *
 import pandas as pd
 import json
+import pytest
 
-# os.chdir('/Users/hitales/Documents')
-#步骤1 连接数据库函数
 
-class ConnectMongoDB():
+class ConnectMongoDB(object):
 
     def __init__(self):
         self.db = self.get_connection()
 
-    def get_connection(self):
+    @staticmethod
+    def get_connection():
         db_connection_configuration = {
             "ssh_tunnel_address": "121.199.24.144",  # 跳板机地址
             "ssh_tunnel_port": 22,  # 跳板机端口
@@ -48,7 +47,6 @@ class ConnectMongoDB():
         db = client['SLE-LN-Prediction-Patient-Data']
         return db
 
-
     # 从json 文件导入mogodb
     def import_from_json(self, filename, tablename):
         f = open(filename)
@@ -65,7 +63,7 @@ class ConnectMongoDB():
 
 
 def test_csv_reader():
-    channel = CsvChannel("/Users/wenhuaizhao/works/ml/CIE/tests/cie/data/胰腺癌原始数据465特征2018后_67特征_CA125fill.txt")
+    channel = CsvChannel("胰腺癌原始数据465特征2018后_67特征_pid_CA125fill_18.txt")
     channel.open()
     params = {
         "sep": '\t',
@@ -76,7 +74,7 @@ def test_csv_reader():
     print(X, columns)
 
 
-def test_mongodb():
+def skip_test_mongodb():
     fields = ['patientid', 'recordid', '化验组', '化验', '化验描绘词', '化验变化态', '数值', '化验数值高峰值', '数值单位', \
               '化验定性结果', '化验定性结果高峰值', '异常', '否定词', '化验条件', '时间', '段落标题', '化验组样本', '化验名称样本']
 
@@ -84,8 +82,9 @@ def test_mongodb():
     # db = MongoClient()
 
     proj = {}
-    for it in fields:
+    for it in fields[:1]:
         proj[it] = '$' + it
+    print(proj)
     project = {'$project': proj}
     # limit ={'$limit':13}
 
@@ -123,8 +122,6 @@ def test_mongo():
 
 if __name__ == '__main__':
     # test_csv_reader()
-    test_mongo()
+    # test_mongo()
 
-
-
-
+    pytest.main([__file__])

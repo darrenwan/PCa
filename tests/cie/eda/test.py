@@ -3,6 +3,7 @@
 from cie.common import logger
 from cie.datasource import *
 from cie.eda import *
+import pytest
 
 from sklearn.datasets import make_classification
 x, y = make_classification(n_features=4, random_state=0)
@@ -36,5 +37,6 @@ def test_data_reader():
 if __name__ == "__main__":
     print("program begins")
     # f()
-    test_data_reader()
+    # test_data_reader()
+    pytest.main([__file__])
     print("program ends")

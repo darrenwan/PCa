@@ -1,5 +1,7 @@
 from cie.feature_selection import *
 from cie.models.ensemble import *
+from cie.models.classification import LogisticRegression
+import pytest
 
 num_features = 3
 
@@ -10,7 +12,7 @@ def load_data():
 
     data = load_iris()
     print(data.data.shape, data.target.shape)
-    return CieDataFrame.to_cie_data(data.data), CieDataFrame.to_cie_data(data.target)
+    return CieDataFrame(data.data), CieDataFrame(data.target)
 
 
 def test_var_threshold():
@@ -34,8 +36,6 @@ def test_corr():
 
 
 def test_chi2():
-    from sklearn.feature_selection import chi2
-
     X, y = load_data()
     result = SelectKBest(chi2, k=num_features).fit_transform(X, y)
     print(result[:5])
@@ -63,8 +63,6 @@ def test_mine():
 
 
 def test_l1():
-    from sklearn.linear_model import LogisticRegression
-
     X, y = load_data()
 
     # smaller C, stronger regularization
@@ -77,14 +75,13 @@ def test_l1():
 def test_l1l2():
     X, y = load_data()
 
-    model = SelectFromModel(FeatureSelectionLr12(multi_class='auto', threshold=0.5, C=0.1)).fit(X, y)
+    model = SelectFromModel(FeatureSelectionLr12(solver='lbfgs', multi_class='auto', threshold=0.5, C=0.1)).fit(X, y)
     print(getattr(model.estimator_, "coef_", None))
     result = model.transform(X)
     print(result[:5])
 
 
 def test_gbdt():
-
     X, y = load_data()
     # 在没有设置threshold的情况下：
     # gbdt： 按照feature_importances_的均值作为threshold;
@@ -158,5 +155,5 @@ if "__main__" == __name__:
     # test_gbdt()
     # test_sfs_sbs_floating()
     # test_rfe()
-    test_sfs()
-    # pytest.main([__file__])
+    # test_sfs()
+    pytest.main([__file__])

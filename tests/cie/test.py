@@ -147,13 +147,13 @@ if "__main__" == __name__:
         # "nrows": 20,
     }
     # 训练集、验证集
-    channel = CsvChannel("/Users/wenhuaizhao/works/ml/CIE/tests/cie/data/胰腺癌原始数据465特征2018前_67特征_pid_CA125fill_18.txt")
+    channel = CsvChannel("./cie/datasource/datareader/胰腺癌原始数据465特征2018前_67特征_pid_CA125fill_18.txt")
     channel.open()
     Xy, Xy_columns = channel.read(**params)
     channel.close()
 
     # 测试集
-    channel = CsvChannel("/Users/wenhuaizhao/works/ml/CIE/tests/cie/data/胰腺癌原始数据465特征2018后_67特征_pid_CA125fill_18.txt")
+    channel = CsvChannel("./cie/datasource/datareader/胰腺癌原始数据465特征2018后_67特征_pid_CA125fill_18.txt")
     channel.open()
     Xy_test, _ = channel.read(**params)
     channel.close()
@@ -165,8 +165,8 @@ if "__main__" == __name__:
     X_train = Xy.drop(['PID', '分组'], axis=1)
     y_train = Xy["分组"].to_frame()
 
-    X_train = CieDataFrame.to_cie_data(X_train)
-    y_train = CieDataFrame.to_cie_data(y_train)
+    X_train = CieDataFrame(X_train)
+    y_train = CieDataFrame(y_train)
 
     if has_split_val:
         seed = 301
@@ -174,8 +174,8 @@ if "__main__" == __name__:
 
     X_test = Xy_test.drop(['PID', '分组'], axis=1)
     y_test = Xy_test["分组"]
-    X_test = CieDataFrame.to_cie_data(X_test)
-    y_test = CieDataFrame.to_cie_data(y_test)
+    X_test = CieDataFrame(X_test)
+    y_test = CieDataFrame(y_test)
 
     if has_feature_selection:
         # 特征选择
@@ -201,6 +201,5 @@ if "__main__" == __name__:
 
     data = {"train": (X_train, y_train), "val": (X_val, y_val), "test": (X_test, y_test)}
     output_metrics_to_excel(model,
-                            output_file="/Users/wenhuaizhao/works/ml/CIE/tests/cie/data/"
-                                        "table2和3的GBDT与CA199评价指标_20181217_2.xlsx",
+                            output_file="./output/metrics.xlsx",
                             sheet_name='table3的CA199阴性的GBDT评价指标', data=data)

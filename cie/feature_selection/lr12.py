@@ -18,8 +18,9 @@ class FeatureSelectionLr12(LogisticRegression):
                          'intercept_scaling': intercept_scaling, 'class_weight': class_weight,
                          'random_state': random_state, 'solver': solver, 'max_iter': max_iter,
                          'multi_class': multi_class, 'verbose': verbose, 'warm_start': warm_start, 'n_jobs': n_jobs}
-        super(FeatureSelectionLr12, self).__init__(penalty='l1', **common_params)
         self.lr_l2 = LogisticRegression(penalty='l2', **common_params)
+        common_params['solver'] = 'liblinear'
+        super(FeatureSelectionLr12, self).__init__(penalty='l1', **common_params)
 
     def fit(self, X, y, sample_weight=None):
         super(FeatureSelectionLr12, self).fit(X, y, sample_weight=sample_weight)

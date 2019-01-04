@@ -33,21 +33,31 @@ class SkewPowerTransformer(BaseEstimator, TransformerMixin):
         self.num_cols = None
         self.transformer = PowerTransformer(method=method)
 
-    def fit(self, X):
-        skew_cols = Preprocess.find_skew_cols(X, skew_thresh=self.skew_thresh, data_type='ndarray')
+    def fit(self, X, y=None):
+        # 找出skew太大的列
+        self.columns = X.columns
+        X = X.values
+        if y is not None:
+            y = y[y.columns[0]].values
+        skew_cols = Preprocess.find_skew_cols(X, skew_thresh=self.skew_thresh)
         num_cols = X.shape[1]
         self.num_cols = num_cols
         skew_cols.sort()
         self.skew_cols = skew_cols
+        if skew_cols is not None and len(skew_cols) > 0:
+            self.transformer.fit(X[:, skew_cols], y)
         return self
 
     def transform(self, X):
+        X = X.values
         num_cols = X.shape[1]
         if num_cols != self.num_cols:
             raise ValueError("transform data must be the same dimension of fit data")
         skew_cols = self.skew_cols
+        print("skew_cols", skew_cols)
         if skew_cols is not None and len(skew_cols) > 0:
-            skew_data = self.transformer.fit_transform(X[:, skew_cols])
+            # 针对skew太大的列使用power变换
+            skew_data = self.transformer.transform(X[:, skew_cols])
             x_merge = np.concatenate((X, skew_data), axis=1)
             x_new_cols = []
             for i in range(num_cols):
@@ -58,7 +68,8 @@ class SkewPowerTransformer(BaseEstimator, TransformerMixin):
             x_new = x_merge[:, x_new_cols]
         else:
             x_new = X
-        return x_new
+            x_new_cols = self.columns
+        return pd.DataFrame(x_new, columns=x_new_cols)
 
 
 class Preprocess(object):
@@ -292,14 +303,13 @@ class Preprocess(object):
         return inner_func
 
     @staticmethod
-    def find_skew_cols(data, skew_thresh=0.75, data_type='dataframe'):
+    def find_skew_cols(data, skew_thresh=0.75):
         """
         找出偏态大于skew_thresh的特征
         :param data: ndarray或者dataframe, 特征数据
         :param skew_thresh: float, skew阈值
         :return: 发生转换的columns名称
         """
-        Preprocess._check_type(data=data, data_type=data_type)
         if isinstance(data, pd.DataFrame):
             df = data
         else:
