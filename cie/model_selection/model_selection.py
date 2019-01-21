@@ -1,5 +1,27 @@
-import sklearn.model_selection as ms
+from sklearn.model_selection import GridSearchCV, KFold, GroupKFold, GroupShuffleSplit, LeaveOneGroupOut, LeaveOneOut, \
+    LeavePGroupsOut, LeavePOut, ShuffleSplit, StratifiedKFold, StratifiedShuffleSplit, check_cv, cross_val_predict, \
+    cross_val_score, cross_validate, learning_curve, validation_curve
+from sklearn.model_selection import train_test_split as sk_train_test_split
 import pandas as pd
+
+__all__ = ('GridSearchCV',
+           'KFold',
+           'GroupKFold',
+           'GroupShuffleSplit',
+           'LeaveOneGroupOut',
+           'LeaveOneOut',
+           'LeavePGroupsOut',
+           'LeavePOut',
+           'ShuffleSplit',
+           'StratifiedKFold',
+           'StratifiedShuffleSplit',
+           'check_cv',
+           'cross_val_predict',
+           'cross_val_score',
+           'cross_validate',
+           'learning_curve',
+           'train_test_split',
+           'validation_curve')
 
 
 def train_test_split(X, y, **options):
@@ -64,7 +86,7 @@ def train_test_split(X, y, **options):
     """
     X_columns = X.columns
     y_columns = y.columns
-    X_train, X_val, y_train, y_val = ms.train_test_split(X, y, **options)
+    X_train, X_val, y_train, y_val = sk_train_test_split(X, y, **options)
     X_train = pd.DataFrame(X_train, columns=X_columns)
     X_val = pd.DataFrame(X_val, columns=X_columns)
     y_train = pd.DataFrame(y_train, columns=y_columns)
