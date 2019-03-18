@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Sep  3 11:06:08 2018
-
-@author: atlan
-"""
 
 from sklearn.metrics import *
 from sklearn.model_selection import learning_curve
