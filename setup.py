@@ -1,10 +1,15 @@
-from setuptools import setup
-from setuptools import find_packages
+import os
+from setuptools import setup, find_packages
+
 
 long_description = '''
 CIE platform is designed to make clinical machine learning more convenient and normalizable. 
 '''
 
+HERE = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(HERE, 'requirements.txt')) as fp:
+    install_reqs = [r.rstrip() for r in fp.readlines()
+                    if not r.startswith('#') and not r.startswith('git+')]
 setup(name='CIE',
       version='0.0.1',
       description='CIE platform',
@@ -14,13 +19,7 @@ setup(name='CIE',
       url='https://github.com/hitales/CIE',
       download_url='https://github.com/hitales/CIE/cie',
       license='Hitales',
-      install_requires=['numpy>=1.9.1',
-                        'scipy>=0.14',
-                        'six>=1.9.0',
-                        'pyyaml',
-                        'matplotlib',
-                        'scikit-learn',
-                        'h5py'],
+      install_requires=install_reqs,
       extras_require={
           'visualize': ['pydot>=1.2.4'],
           'tests': ['pytest',

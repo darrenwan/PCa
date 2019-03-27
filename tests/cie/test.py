@@ -147,13 +147,13 @@ if "__main__" == __name__:
         # "nrows": 20,
     }
     # 训练集、验证集
-    channel = CsvChannel("./cie/datasource/datareader/胰腺癌原始数据465特征2018前_67特征_pid_CA125fill_18.txt")
+    channel = CsvChannel("./datasource/datareader/胰腺癌原始数据465特征2018前_67特征_pid_CA125fill_18.txt")
     channel.open()
     Xy, Xy_columns = channel.read(**params)
     channel.close()
 
     # 测试集
-    channel = CsvChannel("./cie/datasource/datareader/胰腺癌原始数据465特征2018后_67特征_pid_CA125fill_18.txt")
+    channel = CsvChannel("./datasource/datareader/胰腺癌原始数据465特征2018后_67特征_pid_CA125fill_18.txt")
     channel.open()
     Xy_test, _ = channel.read(**params)
     channel.close()

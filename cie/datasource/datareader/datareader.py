@@ -97,6 +97,42 @@ class ExcelChannel(BaseChannel):
         # df = pd.DataFrame(data)
         writer = pd.ExcelWriter(self.source, engine='xlsxwriter')
         data.to_excel(writer, **kwargs)
+        writer.save()
+
+        # def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
+        #                        startcol=None, truncate_sheet=False,
+        #                        **to_excel_kwargs):
+        #     from openpyxl import load_workbook
+        #
+        #     if 'engine' in to_excel_kwargs:
+        #         to_excel_kwargs.pop('engine')
+        #
+        #     writer = pd.ExcelWriter(filename, engine='openpyxl')
+        #
+        #     try:
+        #         writer.book = load_workbook(filename)
+        #         if startrow is None and sheet_name in writer.book.sheetnames:
+        #             startrow = writer.book[sheet_name].max_row
+        #
+        #         if startrow is None and sheet_name in writer.book.sheetnames:
+        #             startcol = writer.book[sheet_name].max_column
+        #         if truncate_sheet and sheet_name in writer.book.sheetnames:
+        #             idx = writer.book.sheetnames.index(sheet_name)
+        #             writer.book.remove(writer.book.worksheets[idx])
+        #             writer.book.create_sheet(sheet_name, idx)
+        #         writer.sheets = {ws.title: ws for ws in writer.book.worksheets}
+        #     except FileNotFoundError:
+        #         pass
+        #
+        #     if startrow is None:
+        #         startrow = 0
+        #     if startcol is None:
+        #         startcol = 0
+        #
+        #     df.to_excel(writer, sheet_name, startrow=startrow, startcol=startcol, **to_excel_kwargs)
+        #     writer.save()
+        #
+        # append_df_to_excel(self.source, data, **kwargs)
 
 
 class CsvChannel(BaseChannel):

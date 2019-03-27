@@ -23,7 +23,6 @@ def _stat_metrics(model, *args):
             return x.round(5)
         except TypeError:
             return x
-
     return res.apply(decimal_precision)
 
 

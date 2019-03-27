@@ -19,7 +19,7 @@ if not os.path.exists(stat_folder):
     os.makedirs(stat_folder)
 
 
-def stat_missing_values(data):
+def stat_missing_values(data, file_path="缺失值统计.png"):
     """
     统计缺失值数量，并画图，保存为"缺失值统计.png"
     :param data: dataframe, 需要统计的缺失值
@@ -42,7 +42,7 @@ def stat_missing_values(data):
     ax.set_yticklabels(missing.column_name.values, rotation='horizontal')
     ax.set_xlabel("Count of missing values")
     ax.set_title("Number of missing values")
-    plt.savefig(stat_folder + "缺失值统计.png")
+    plt.savefig(stat_folder + file_path)
     return plt
 
 
