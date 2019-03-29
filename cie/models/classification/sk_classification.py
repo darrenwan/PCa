@@ -1,7 +1,8 @@
 from sklearn import svm
 import sklearn.linear_model as lm
+from sklearn.neighbors import KNeighborsClassifier
 
-__all__ = ['SVC', 'LogisticRegression', 'SGDClassifier']
+__all__ = ['SVC', 'LogisticRegression', 'SGDClassifier', 'KNeighborsClassifier']
 
 
 class SVC(svm.SVC):
