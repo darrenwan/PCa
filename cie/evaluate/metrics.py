@@ -129,7 +129,11 @@ def score_metrics(y_true, y_pred, score_classes=(None, None), average="macro"):
         n_labels = len(labels)
         y_true = le.transform(y_true)
         y_true = label_binarize(y_true, np.arange(n_labels))
-        auc_measure = [roc_auc_score(y_true[:, idx], y_score[:, idx], average=average) for idx in range(n_labels)]
+        print(y_score.shape, y_score.ndim, y_true.shape)
+        if n_labels > 2:
+            auc_measure = [roc_auc_score(y_true[:, idx], y_score[:, idx], average=average) for idx in range(n_labels)]
+        else:
+            auc_measure = [roc_auc_score(y_true, y_score[:, idx], average=average) for idx in range(n_labels)]
     else:
         auc_measure = None
     tpr[np.isnan(tpr)] = 0.0

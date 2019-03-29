@@ -25,7 +25,7 @@ logger = logger.get_logger(name=logger.get_name(__file__))
 
 
 def grid_search_tuning(estimator, x_train, y_train, x_test, y_test, param_grid=None, cv=5,
-                       scores={"acc": ("accuracy", None)}, features_names=None, regressor=False, do_plot=False):
+                       scores={"acc": ("accuracy", None)}, features_names=None, regressor=False, fit_params=None, do_plot=False):
     """
     参数grid search交叉tuning
     :param estimator: 模型评估器
@@ -48,20 +48,21 @@ def grid_search_tuning(estimator, x_train, y_train, x_test, y_test, param_grid=N
         score_func = scores[score][1]
         if scores[score] in ['f1', 'precision', 'recall']:
             score_new = '%s_macro' % score_new
-        logger.info("param_grid", param_grid)
+        logger.info(f"param_grid: {param_grid}")
         if regressor:
-            gs = GridSearchCV(estimator, param_grid, cv=cv, scoring=score_new)
+            gs = GridSearchCV(estimator, param_grid, cv=cv, fit_params=fit_params, scoring=score_new)
         else:
-            gs = GridSearchCV(estimator, param_grid, cv=cv,
+            gs = GridSearchCV(estimator, param_grid, cv=cv, fit_params=fit_params,
                               scoring={score: score_new}, refit=score, return_train_score=True)
+            # gs = GridSearchCV(estimator, param_grid, cv=cv, scoring=score_new, class_weight=class_weight)
         gs.fit(x_train, y_train)
 
         if regressor:
             best_index_ = gs.cv_results_["rank_test_score"].argmax()
             best_params_ = gs.cv_results_["params"][best_index_]
-            logger.info("交叉验证集上最好的参数：", best_params_)
+            logger.info(f"交叉验证集上最好的参数：{best_params_}")
         else:
-            logger.info("交叉验证集上最好的参数：", gs.best_params_)
+            logger.info(f"交叉验证集上最好的参数：{gs.best_params_}")
         logger.info("交叉验证集上的各个参数表现：")
         if regressor:
             means = gs.cv_results_['mean_test_score']
