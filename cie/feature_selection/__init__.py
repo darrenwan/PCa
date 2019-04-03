@@ -4,6 +4,7 @@ from .sfs_alg import SequentialForwardSelector
 
 __all__ = [
     'RFE',
+    'RFECV',
     'SelectKBest',
     'SelectFromModel',
     'VarianceThreshold',

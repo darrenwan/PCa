@@ -10,6 +10,7 @@ import numpy as np
 
 __all__ = [
     'RFE',
+    'RFECV',
     'SelectKBest',
     'SelectFromModel',
     'VarianceThreshold',
@@ -123,7 +124,7 @@ class SequentialFeatureSelector(xfs.SequentialFeatureSelector):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-        X = X.values
+        X_res = X.values
         return super(SequentialFeatureSelector, self).fit(X, y)
 
     def transform(self, X):
@@ -139,11 +140,30 @@ class RFE(fs.RFE):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-        X = X.values
-        return super(RFE, self).fit(X, y)
+        X_res = X.values
+        return super(RFE, self).fit(X_res, y)
 
     def transform(self, X):
-        arr_X = super(RFE, self).transform(X.values)
+        if hasattr(X, 'values'):
+            X = X.values
+        arr_X = super(RFE, self).transform(X)
+        columns = np.array(self.columns)[self.get_support()]
+        return pd.DataFrame(arr_X, columns=columns)
+
+
+class RFECV(fs.RFECV):
+
+    def fit(self, X, y=None):
+        self.columns = X.columns
+        if y is not None:
+            y = y[y.columns[0]].values
+        X_res = X.values
+        return super(RFECV, self).fit(X_res, y)
+
+    def transform(self, X):
+        if hasattr(X, 'values'):
+            X = X.values
+        arr_X = super(RFECV, self).transform(X)
         columns = np.array(self.columns)[self.get_support()]
         return pd.DataFrame(arr_X, columns=columns)
 
@@ -154,8 +174,8 @@ class Sfs(SequentialForwardSelector):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-        X = X.values
-        return super(Sfs, self).fit(X, y)
+        X_res = X.values
+        return super(Sfs, self).fit(X_res, y)
 
     def transform(self, X):
         arr_X = super(Sfs, self).transform(X.values)
@@ -169,8 +189,8 @@ class SelectFromModel(fs.SelectFromModel):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-        X = X.values
-        return super(SelectFromModel, self).fit(X, y)
+        X_res = X.values
+        return super(SelectFromModel, self).fit(X_res, y)
 
     def transform(self, X):
         arr_X = super(SelectFromModel, self).transform(X.values)
@@ -183,8 +203,8 @@ class VarianceThreshold(fs.VarianceThreshold):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-        X = X.values
-        return super(VarianceThreshold, self).fit(X, y)
+        X_res = X.values
+        return super(VarianceThreshold, self).fit(X_res, y)
 
     def transform(self, X):
         arr_X = super(VarianceThreshold, self).transform(X.values)
@@ -198,8 +218,8 @@ class SelectKBest(fs.SelectKBest):
         self.columns = X.columns
         if y is not None:
             y = y[y.columns[0]].values
-        X = X.values
-        return super(SelectKBest, self).fit(X, y)
+        X_res = X.values
+        return super(SelectKBest, self).fit(X_res, y)
 
     def transform(self, X):
         arr_X = super(SelectKBest, self).transform(X.values)

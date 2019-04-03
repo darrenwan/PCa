@@ -45,10 +45,10 @@ class CieDataFrame2(object):
         return data_x
 
 
-CieDataFrame1 = pd.DataFrame
+CieDataFrame = pd.DataFrame
 
 
-class CieDataFrame(object):
+class CieDataFrame1(object):
     """
     待完善
     """

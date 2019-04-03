@@ -1,5 +1,5 @@
 from cie.datasource import *
-from cie.model_selection import train_test_split
+from cie.model_selection import train_test_split, StratifiedKFold
 from cie.models.ensemble import GradientBoostingClassifier, XGBClassifier
 from cie.eda.visualization import *
 from cie.evaluate.tuning import *
@@ -12,20 +12,21 @@ from cie.data import CieDataFrame
 from cie.utils import pickle
 from cie.utils import class_weight
 from cie.common import logger
-from cie.feature_selection import *
+from cie.feature_selection import RFECV
 from cie.preprocessing import *
 
 logger = logger.get_logger(name=logger.get_name(__file__))
 
 
 class Estimator(object):
-    def __init__(self, model_file, feature_selection_file, stack_file, gbdt_encoder_file, gbdt_file, gbdt_lm_file):
-        self.gbdt_encoder_file = gbdt_encoder_file
-        self.gbdt_file = gbdt_file
-        self.gbdt_lm_file = gbdt_lm_file
-        self.model_file = model_file
-        self.feature_selection_file = feature_selection_file
-        self.stack_file = stack_file
+    def __init__(self, **params):
+        self.gbdt_encoder_file = params.get("gbdt_encoder_file")
+        self.gbdt_file = params.get("gbdt_file")
+        self.gbdt_lm_file = params.get("gbdt_lm_file")
+        self.model_file = params.get("model_file")
+        self.feature_selection_file = params.get("feature_selection_file")
+        self.stack_file = params.get("stack_file")
+        self.label_encoder_file = params.get("label_encoder_file")
         # 定义flag开关：提供特征选择，参数tuning，stacking模型融合，gbdt+lr
         self.config = {"has_imputation": False,
                        "has_feature_selection": True,
@@ -48,28 +49,54 @@ class Estimator(object):
         return Xy, Xy_columns
 
     def feature_selection(self, X=None, y=None, train=True):
-        train = False
+        # train = False
         columns = X.columns.values
         logger.info(f"feature_selection begin")
         if train:
-            estimator = GradientBoostingClassifier()
-            selector = SequentialFeatureSelector(estimator,
-                                                 k_features=16,
-                                                 forward=True,
-                                                 floating=False,
-                                                 verbose=0,
-                                                 scoring='recall',
-                                                 cv=10).fit(X, y)
-            logger.info(f"feature_selection selected: {selector.k_feature_idx_}")
+            # estimator = GradientBoostingClassifier()
+            # selector = SequentialFeatureSelector(estimator,
+            #                                      k_features=16,
+            #                                      forward=True,
+            #                                      floating=False,
+            #                                      verbose=0,
+            #                                      scoring='recall',
+            #                                      cv=10).fit(X, y)
+            # logger.info(f"feature_selection selected: {selector.k_feature_idx_}")
             # selector = Sfs(estimator,
             #                verbose=0, scoring=None,
             #                cv=5, n_jobs=2,
             #                persist_features=None,
             #                pre_dispatch='2*n_jobs',
             #                clone_estimator=True).fit(X, y)
-            selector = SelectFromModel(GradientBoostingClassifier(learning_rate=0.05, n_estimators=500, max_depth=8,
-                                                                  min_samples_split=50), threshold=None).fit(X, y)
-            logger.info(f"feature_selection selected: {columns[selector._get_support_mask()]}")
+            # selector = SelectFromModel(GradientBoostingClassifier(learning_rate=0.05, n_estimators=500, max_depth=8,
+            #                                                       min_samples_split=50), threshold=None).fit(X, y)
+            # logger.info(f"feature_selection selected: {columns[selector._get_support_mask()]}")
+
+            scores = list()
+            bst_scores = list()
+            features_selected = list()
+            for i in range(10):
+                estimator = XGBClassifier(random_state=0, n_jobs=3, learning_rate=0.05,
+                                          min_child_weight=2, subsample=0.8,
+                                          n_estimators=200, max_depth=4)
+                selector = RFECV(estimator=estimator, step=1, cv=StratifiedKFold(10, shuffle=True, random_state=i),
+                                 scoring='f1', n_jobs=10)
+
+                selector.fit(X, y)
+
+                scores.append(selector.grid_scores_)
+                bst_scores.append((selector.grid_scores_[-1], selector))
+
+                features_selected.append(columns[selector.get_support()])
+                logger.info(f"selector {i}, selected features: {selector.n_features_}, "
+                            f"{columns[selector.get_support()]}")
+                logger.info(f"selector: {i}, {selector.get_support()}")
+                logger.info(f"selector scores: {selector.grid_scores_}")
+
+            logger.info(f"features_selected: {features_selected}")
+            bst_scores = sorted(bst_scores, key=lambda x: x[0], reverse=True)[0]
+            logger.info(f"selector bst_scores: {bst_scores}")
+            selector = bst_scores[1]
             with open(self.feature_selection_file, 'wb') as f:
                 pickle.dump(selector, f)
             X = selector.transform(X)
@@ -77,10 +104,13 @@ class Estimator(object):
             with open(self.feature_selection_file, 'rb') as f:
                 selector = pickle.load(f)
             X = selector.transform(X)
+            cols = columns[selector.get_support()]
+            cols = list(set([col.split('-')[0] for col in cols]))
+            logger.info(f"selector final features: {cols}")
         logger.info("feature_selection end")
         return X
 
-    def tuning_param(self, train_x, train_y, estimater=None, param_grid=None, fit_params=None):
+    def tuning_param(self, train_x, train_y, estimator=None, param_grid=None, fit_params=None):
         """
         尝试不同的参数，查看指标。
         :return:
@@ -89,7 +119,7 @@ class Estimator(object):
         scores = {"recall": ("recall", None)}
         # 参数tuning
         best_estimator = grid_search_tuning(
-            estimater, train_x, train_y, None, None, param_grid=param_grid, cv=10, fit_params=fit_params,
+            estimator, train_x, train_y, None, None, param_grid=param_grid, cv=10, fit_params=fit_params,
             scores=scores,
             regressor=False)
         logger.info(f"tuning_param end")
@@ -142,11 +172,11 @@ class Estimator(object):
                                              min_samples_split=60, max_features='sqrt', subsample=0.7)
             grd_enc = OneHotEncoder()
             grd_lm = LogisticRegression(solver='liblinear', max_iter=2000, class_weight='balanced', C=0.15)
-            sample_weights = class_weight.compute_sample_weight('balanced', y_train["分组0"])
+            sample_weights = class_weight.compute_sample_weight('balanced', y_train[label_name])
             grd.fit(X_train, y_train, sample_weight=sample_weights)
             grd_enc.fit(grd.apply(X_train)[:, :, 0])
 
-            sample_weights = class_weight.compute_sample_weight('balanced', y_train_lr["分组0"])
+            sample_weights = class_weight.compute_sample_weight('balanced', y_train_lr[label_name])
             grd_lm.fit(grd_enc.transform(grd.apply(X_train_lr)[:, :, 0]), y_train_lr, sample_weight=sample_weights)
 
             with open(self.gbdt_encoder_file, 'wb') as f:
@@ -168,6 +198,22 @@ class Estimator(object):
 
             return grd_lm, y, y_score
 
+    def _convert_label(self, y, train=True):
+        if train:
+            le = LabelEncoder()
+            le.fit(y)
+
+            with open(self.label_encoder_file, 'wb') as f:
+                pickle.dump(le, f)
+        else:
+            with open(self.label_encoder_file, 'rb') as f:
+                le = pickle.load(f)
+            print(le.classes_)
+        columns = y.columns
+        y = le.transform(y)
+        y = CieDataFrame(y, columns=columns)
+        return y
+
     def train(self, source):
         # 训练
         logger.info(f"train begin")
@@ -176,19 +222,21 @@ class Estimator(object):
         if self.config.get("has_imputation", False):
             # eda分析
             stat_missing_values(Xy)
-        X_train = Xy.drop(['PID', '分组', '分组0'], axis=1)
+        X_train = Xy.drop(extra_drop + [label_name], axis=1)
         if features is not None:
             X_train = X_train[features]
-        y_train = Xy["分组0"].to_frame()
+        y_train = Xy[label_name].to_frame()
         X_train = CieDataFrame(X_train)
         y_train = CieDataFrame(y_train)
+
+        y_train = self._convert_label(y_train, train=True)
 
         # 特征选择
         if self.config.get("has_feature_selection", False):
             X_train = self.feature_selection(X_train, y_train)
 
         # TODO, trick, 待解决CieDataFrame的warning和set问题
-        sample_weights = class_weight.compute_sample_weight("balanced", y_train["分组0"])
+        sample_weights = class_weight.compute_sample_weight("balanced", y_train[label_name])
         model_candidates = {
             'SVC':
                 {
@@ -238,7 +286,7 @@ class Estimator(object):
         best_model_candidates = dict()
         if self.config.get("has_tuning_param", False):
             for key, value in model_candidates.items():
-                best_est = self.tuning_param(X_train, y_train, estimater=value["estimator"],
+                best_est = self.tuning_param(X_train, y_train, estimator=value["estimator"],
                                              param_grid=value["param"], fit_params=value["fit_params"])
                 best_model_candidates[key] = best_est
         else:
@@ -271,7 +319,7 @@ class Estimator(object):
         if self.config.get("has_imputation", False):
             # eda分析
             stat_missing_values(Xy)
-        X = Xy.drop(['PID', '分组', '分组0'], axis=1)
+        X = Xy.drop(extra_drop + [label_name], axis=1)
         if features is not None:
             X = X[features]
         X = CieDataFrame(X)
@@ -298,20 +346,23 @@ class Estimator(object):
         logger.info(f"stat begin")
         # 读取数据
         Xy, Xy_columns = self._read_excel(train_source)
-        X_train = Xy.drop(['PID', '分组0', '分组'], axis=1)
+        X_train = Xy.drop(extra_drop + [label_name], axis=1)
         if features is not None:
             X_train = X_train[features]
-        y_train = Xy["分组0"].to_frame()
+        y_train = Xy[label_name].to_frame()
         X_train = CieDataFrame(X_train)
         y_train = CieDataFrame(y_train)
 
         Xy, Xy_columns = self._read_excel(test_source)
-        X_test = Xy.drop(['PID', '分组0', '分组'], axis=1)
+        X_test = Xy.drop(extra_drop + [label_name], axis=1)
         if features is not None:
             X_test = X_test[features]
         X_test = CieDataFrame(X_test)
-        y_test = Xy["分组0"].to_frame()
+        y_test = Xy[label_name].to_frame()
         y_test = CieDataFrame(y_test)
+
+        y_train = self._convert_label(y_train, train=True)
+        y_test = self._convert_label(y_test, train=False)
 
         # 特征选择
         if self.config.get("has_feature_selection", False):
@@ -393,9 +444,13 @@ if "__main__" == __name__:
     # CA125_combine0
     # CA199-定量_combine0""".split()
     # print(len(features))
+    # features = 'CEA-定性'
+
     logger.info(f"program begin")
     train_file = "./data/train.xlsx"
     test_file = "./data/test.xlsx"
+    label_name = '二分组'
+    extra_drop = ['PID', '分组']
     output_file = path.join(output_folder, "metrics.xlsx")
     model_file = path.join(model_folder, "model.pkl")
     stack_file = path.join(model_folder, "stack.pkl")
@@ -403,7 +458,12 @@ if "__main__" == __name__:
     gbdt_encoder_file = path.join(model_folder, "gbdt_onehot.pkl")
     gbdt_file = path.join(model_folder, "gbdt.pkl")
     gbdt_lm_file = path.join(model_folder, "gbdt_lm.pkl")
-    est = Estimator(model_file, feature_selection_file, stack_file, gbdt_encoder_file, gbdt_file, gbdt_lm_file)
+    label_encoder_file = path.join(model_folder, "label_encoder.pkl")
+    params = {"output_file": output_file, "model_file": model_file, "stack_file": stack_file,
+              "feature_selection_file": feature_selection_file, "gbdt_encoder_file": gbdt_encoder_file,
+              "gbdt_file": gbdt_file, "gbdt_lm_file": gbdt_lm_file, "label_encoder_file": label_encoder_file}
+    est = Estimator(**params)
     est.train(source=train_file)
     est.predict(source=test_file)
     est.stat(train_source=train_file, test_source=test_file, output_file=output_file)
+    logger.info(f"program end")

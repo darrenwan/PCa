@@ -22,7 +22,7 @@ if not os.path.exists(stat_folder):
 def stat_missing_values(data, file_path="缺失值统计.png"):
     """
     统计缺失值数量，并画图，保存为"缺失值统计.png"
-    :param data: dataframe, 需要统计的缺失值
+    :param data: dataframe, 需要统计的缺失值Z
     :return: plt
     """
     missing = data.isnull().sum(axis=0).reset_index()
@@ -43,7 +43,7 @@ def stat_missing_values(data, file_path="缺失值统计.png"):
     ax.set_xlabel("Count of missing values")
     ax.set_title("Number of missing values")
     plt.savefig(stat_folder + file_path)
-    return plt
+    return missing, plt
 
 
 def stat_freq_continious(data, num_bins=10):
@@ -104,7 +104,6 @@ def stat_freq_categrical(data):
     """
     values = data.columns.values
     features = data.fillna('nan')
-    # 连续性变量，等宽成num_bins来处理
     length = len(values)
     for i in range(length):
         name = values[i]
@@ -117,6 +116,7 @@ def stat_freq_categrical(data):
         # plt.show()
         plt.savefig(stat_folder + "频次-" + name + ".png")
         plt.gcf().clear()
+    return
 
 
 def stat_freq(data, data_type='dataframe', names=None, force_cat_cols=None, num_bins=10):
